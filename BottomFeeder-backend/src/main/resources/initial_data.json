@@ -1,0 +1,61 @@
+{
+  "users": [
+    {
+      "login": "admin",
+      "password": {
+        "value": "test12",
+        "format": "PLAIN_TEXT"
+      },
+      "role": "ADMIN",
+      "digests": [
+        {
+          "externalId": "dvx3f0ojj8j4im7b",
+          "title": "Test Digest 1",
+          "maxItems": 50,
+          "isPrivate": false,
+          "sourceFeeds": [
+            {
+              "source": "http://rss.slashdot.org/Slashdot/slashdotMainatom",
+              "contentUpdateInterval": 25
+            },
+            {
+              "source": "https://www.youtube.com/feeds/videos.xml?channel_id=UC16niRr50-MSBwiO3YDb3RA",
+              "contentUpdateInterval": 120
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "login": "user2",
+      "password": {
+        "value": "12345",
+        "format": "PLAIN_TEXT"
+      },
+      "role": "USER",
+      "digests": [
+        {
+          "externalId": "rbe9k8d90dc4ste4",
+          "title": "Test Digest 2",
+          "maxItems": 100,
+          "isPrivate": true,
+          "sourceFeeds": [
+            {
+              "source": "https://en.wikipedia.org/w/index.php?title=Special:NewPages&feed=rss",
+              "contentUpdateInterval": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "login": "user3",
+      "password": {
+        "value": "$2a$10$vNsAAjMAHVm.9hKkPYVx8.BBPEwzgxHK5ULpIhLHTzoslQoj8V1Fy",
+        "format": "BCRYPT_HASH"
+      },
+      "role": "USER",
+      "digests": []
+    }
+  ]
+}

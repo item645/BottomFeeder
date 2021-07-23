@@ -1,0 +1,101 @@
+<div class="col-md-10 offset-md-1">
+	<div class="text-center">
+		<h2 *ngIf="!digest">Add Digest</h2>
+		<h2 *ngIf="digest">Edit Digest</h2>
+	</div>
+	<ul ngbNav #nav="ngbNav" [(activeId)]="activeTabId" class="nav-tabs">
+		<li [ngbNavItem]="1">
+			<a ngbNavLink>Digest Settings</a>
+			<ng-template ngbNavContent>
+				<form [formGroup]="form" (ngSubmit)="save()">
+					<div *ngIf="digest">
+						<dl class="row">
+							<dt class="col-sm-2"><span>Owner</span></dt>
+							<dd class="col-sm-10"><span>{{digest.ownerLogin}}</span></dd>
+						</dl>
+						<dl class="row">
+							<dt class="col-sm-2"><span>Creation Date</span></dt>
+							<dd class="col-sm-10"><span>{{digest.creationDate | date:'medium'}}</span></dd>
+						</dl>
+						<dl class="row">
+							<dt class="col-sm-2"><span>External ID</span></dt>
+							<dd class="col-sm-10">
+								<span>{{digest.externalId}}</span>
+								<small class="form-text text-muted">
+									Unique ID of this digest, used for accessing its feed content (see links below).
+								</small>
+							</dd>
+						</dl>
+						<dl class="row">
+							<dt class="col-sm-2"><span>RSS Link</span></dt>
+							<dd class="col-sm-10"><span>{{digest.rssLink}}</span></dd>
+						</dl>
+						<dl class="row">
+							<dt class="col-sm-2"><span>Atom Link</span></dt>
+							<dd class="col-sm-10"><span>{{digest.atomLink}}</span></dd>
+						</dl>
+					</div>
+					<div class="form-group row">
+						<label for="title" class="col-sm-2 font-weight-bold">Title</label>
+						<div class="col-sm-10">
+							<input type="text" formControlName="title" class="form-control form-control-sm"
+								[ngClass]="{ 'is-invalid': submitted && f.title.errors }" />
+							<div *ngIf="submitted && f.title.errors" class="invalid-feedback">
+								<div *ngIf="f.title.errors.required">Title is required</div>
+								<div *ngIf="f.title.errors.maxlength">Title must be no more than 200 characters</div>
+							</div>
+							<small class="form-text text-muted">
+								Descriptive title of this digest. This will be used as the value of <em>title</em> element
+								in this digest's aggregated feed.
+							</small>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="maxItems" class="col-sm-2 font-weight-bold">Max Items</label>
+						<div class="col-sm-10">
+							<input type="number" formControlName="maxItems" class="form-control form-control-sm"
+								[ngClass]="{ 'is-invalid': submitted && f.maxItems.errors }" />
+							<div *ngIf="submitted && f.maxItems.errors" class="invalid-feedback">
+								<div *ngIf="f.maxItems.errors.required">Max Items is required</div>
+								<div *ngIf="f.maxItems.errors.min">Max Items value must be no less than 1</div>
+								<div *ngIf="f.maxItems.errors.max">Max Items value must be no more than 500</div>
+							</div>
+							<small class="form-text text-muted">
+								Limits the number of items displayed by digest.
+							</small>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="isPrivate" class="col-sm-2 font-weight-bold">Is Private</label>
+						<div class="col-sm-10">
+							<input type="checkbox" formControlName="isPrivate" class="form-check-input ml-0 position-relative" />
+							<small class="form-text text-muted">
+								Marks digest as private. The content of private digest can only be accessed by you, using your
+								credentials for authentication.
+								The content of non-private digest is accessible to anyone who knows digest's external ID, 
+								including anonymous users. 
+								Feed reader software must use basic HTTP authentication for accessing private digest.
+							</small>
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="form-group">
+							<button [disabled]="loading" class="btn btn-primary">
+								<span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+								Save
+							</button>
+							<a class="btn btn-link" (click)="location.back()">Back</a>
+						</div>
+					</div>
+				</form>
+			</ng-template>
+		</li>
+		<li [ngbNavItem]="2" *ngIf="digest">
+			<a ngbNavLink>Source Feeds</a>
+			<ng-template ngbNavContent>
+				<source-feed-list [digest]="digest"></source-feed-list>
+			</ng-template>
+		</li>
+	</ul>
+</div>
+<div [ngbNavOutlet]="nav" class="col-md-10 offset-md-1"></div>

@@ -1,0 +1,23 @@
+bf:
+  application:
+    name: Bottom Feeder (Development Mode)
+    url: http://localhost:8080
+  data:
+    enable-initial-data-import: true
+    
+spring:
+  datasource:
+    url: jdbc:h2:mem:BottomFeeder
+    driver-class-name: org.h2.Driver
+    username: bfuser
+    password: bftest
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+logging:
+  level:
+    org:
+      springframework: TRACE
+    io:
+      bottomfeeder: TRACE

@@ -1,0 +1,13 @@
+<nav class="navbar navbar-expand navbar-dark bg-dark" *ngIf="principal.isAuthenticated()">
+	<div class="navbar-nav">
+		<a class="nav-item nav-link" routerLink="/digests/my" routerLinkActive="active">My Digests</a>
+		<a class="nav-item nav-link" routerLink="/digests/all" routerLinkActive="active" *ngIf="principal.isAdmin()">All Digests</a>
+		<a class="nav-item nav-link" routerLink="/users" routerLinkActive="active" *ngIf="principal.isAdmin()">Users</a>
+		<a class="nav-item nav-link" routerLink="/account" routerLinkActive="active">Account</a>
+		<a class="nav-item nav-link" style="cursor: pointer;" (click)="logout()">Logout</a>
+	</div>
+</nav>
+
+<div class="app-container">
+	<router-outlet></router-outlet>
+</div>

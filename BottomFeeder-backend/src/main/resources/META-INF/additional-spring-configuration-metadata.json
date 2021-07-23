@@ -1,0 +1,32 @@
+{"properties": [
+  {
+    "name": "bf.application.url",
+    "type": "java.lang.String",
+    "description": "Application URL for external access"
+  },
+  {
+    "name": "bf.application.name",
+    "type": "java.lang.String",
+    "description": "Application name"
+  },
+  {
+    "name": "bf.scheduler.source-feed-update-interval-minutes",
+    "type": "java.lang.String",
+    "description": "An interval for running scheduled update of source feeds content, in minutes'"
+  },
+  {
+    "name": "bf.async.core-pool-size",
+    "type": "java.lang.Integer",
+    "description": "Default core pool size for app's async executor"
+  },
+  {
+    "name": "bf.async.max-pool-size",
+    "type": "java.lang.String",
+    "description": "Max pool size for app's async executor"
+  },
+  {
+    "name": "bf.data.enable-initial-data-import",
+    "type": "java.lang.Boolean",
+    "description": "Enables the importing of initial data into application"
+  }
+]}

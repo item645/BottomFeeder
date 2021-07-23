@@ -1,0 +1,15 @@
+bf:
+  application:
+    name: Bottom Feeder
+    url: http://localhost:8080
+  scheduler:
+    source-feed-update-interval-minutes: 5
+  async:
+    core-pool-size: 5
+    max-pool-size: 15
+    
+spring:
+  profiles:
+    active: dev
+  main:
+    allow-bean-definition-overriding: true

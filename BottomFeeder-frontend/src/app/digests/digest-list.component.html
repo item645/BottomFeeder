@@ -1,0 +1,40 @@
+<div class="col-md-10 offset-md-1">
+	<div class="text-center"><h2>{{listTitle}}</h2></div>
+	<a routerLink="../add" class="btn btn-sm btn-success mb-2">Add Digest</a>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th style="width: 5%" *ngIf="!isOwnDigests">ID</th>
+				<th style="width: 15%">Title</th>
+				<th style="width: 15%">External ID</th>
+				<th style="width: 15%" *ngIf="!isOwnDigests">Owner</th>
+				<th style="width: 15%">Creation Date</th>
+				<th style="width: 15%">Max Items</th>
+				<th style="width: 10%">Is Private</th>
+				<th style="width: 10%">Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr *ngFor="let digest of digests">
+				<td *ngIf="!isOwnDigests">{{digest.id}}</td>
+				<td><a routerLink="../edit/{{digest.id}}">{{digest.title}}</a></td>
+				<td>{{digest.externalId}}</td>
+				<td *ngIf="!isOwnDigests">{{digest.ownerLogin}}</td>
+				<td>{{digest.creationDate | date:'medium'}}</td>
+				<td>{{digest.maxItems}}</td>
+				<td>{{digest.isPrivate}}</td>
+				<td style="white-space: nowrap">
+					<a routerLink="../edit/{{digest.id}}" class="btn btn-sm btn-primary mr-1">Edit</a>
+					<button (click)="deleteDigest(digest.id)" class="btn btn-sm btn-danger">
+						<span>Delete</span>
+					</button>
+				</td>
+			</tr>
+			<tr *ngIf="!digests">
+				<td colspan="4" class="text-center">
+					<span class="spinner-border spinner-border-lg align-center"></span>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
