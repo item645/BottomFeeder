@@ -55,7 +55,10 @@ export class SourceFeedComponent implements OnInit {
 		if (this.sourceFeedId) {
 			this.sourceFeedService
 				.getSourceFeed(this.sourceFeedId)
-				.subscribe(sourceFeed => this.setSourceFeed(sourceFeed));
+				.subscribe(sourceFeed => {
+					this.setSourceFeed(sourceFeed);
+					this.loadDigestTitles();
+				});
 		}
 		else {
 			this.loadDigestTitles();
@@ -69,7 +72,6 @@ export class SourceFeedComponent implements OnInit {
 		this.f.digestId.setValue(this.digestId);
 		this.f.source.setValue(sourceFeed.source);
 		this.f.contentUpdateInterval.setValue(sourceFeed.contentUpdateInterval);
-		this.loadDigestTitles();
 	}
 
 	private loadDigestTitles() {
