@@ -3,12 +3,14 @@ package io.bottomfeeder.data;
 import static io.bottomfeeder.user.User.*;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import io.bottomfeeder.security.Role;
+import io.bottomfeeder.user.User;
 
 /**
  * Container for imported or exported data representing a single user together
@@ -29,4 +31,10 @@ record UserData(
 		
 		@NotNull(message = "{validation.user-data.digests.null}")
 		Collection<DigestData> digests) {
+	
+	UserData {}
+	
+	UserData(User user, Collection<DigestData> digests) {
+		this(user.getLogin(), new PasswordData(user), user.getRole(), Objects.requireNonNull(digests));
+	}
 }

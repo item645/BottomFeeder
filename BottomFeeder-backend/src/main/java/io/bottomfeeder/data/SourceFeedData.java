@@ -7,6 +7,8 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import io.bottomfeeder.sourcefeed.SourceFeed;
+
 /**
  * Container for imported or exported data representing a single source feed.
  */
@@ -19,4 +21,8 @@ record SourceFeedData(
 		@Min(message = VALIDATION_CONTENT_UPDATE_INTERVAL_MIN, value = CONTENT_UPDATE_INTERVAL_MIN)
 		@Max(message = VALIDATION_CONTENT_UPDATE_INTERVAL_MAX, value = CONTENT_UPDATE_INTERVAL_MAX)
 		int contentUpdateInterval) {
+	
+	SourceFeedData(SourceFeed sourceFeed) {
+		this(sourceFeed.getSource(), sourceFeed.getContentUpdateInterval());
+	}
 }
