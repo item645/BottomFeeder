@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.bottomfeeder.api.model.Response;
 import io.bottomfeeder.api.model.SourceFeedRequest;
 import io.bottomfeeder.api.model.SourceFeedResponse;
+import io.bottomfeeder.data.DataExportService;
 import io.bottomfeeder.digest.DigestService;
 import io.bottomfeeder.security.permission.PermissionExpressions;
 import io.bottomfeeder.sourcefeed.SourceFeedService;
@@ -33,10 +35,15 @@ class SourceFeedController {
 
 	private final SourceFeedService sourceFeedService;
 	private final DigestService digestService;
+	private final DataExportService dataExportService;
 	
-	public SourceFeedController(SourceFeedService sourceFeedService, DigestService digestService) {
+	public SourceFeedController(
+			SourceFeedService sourceFeedService, 
+			DigestService digestService, 
+			DataExportService dataExportService) {
 		this.sourceFeedService = sourceFeedService;
 		this.digestService = digestService;
+		this.dataExportService = dataExportService;
 	}
 	
 	
@@ -85,6 +92,13 @@ class SourceFeedController {
 	public Response<Void> deleteSourceFeed(@PathVariable long id) {
 		sourceFeedService.deleteSourceFeed(id);
 		return new Response<>("Source feed deleted successfully");
+	}
+	
+	
+	@PreAuthorize(PermissionExpressions.READ_DIGEST)
+	@GetMapping("/digest/{id}/export")
+	public ResponseEntity<byte[]> exportDigestSourceFeeds(@PathVariable long id) {
+		return Utils.createBinaryJsonResponse(dataExportService.exportSourceFeedsData(digestService.getDigest(id)));
 	}
 
 }

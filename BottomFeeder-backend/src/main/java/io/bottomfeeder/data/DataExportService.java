@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.digest.DigestService;
@@ -37,31 +38,33 @@ public class DataExportService {
 		this.userService = userService;
 		this.digestService = digestService;
 		this.sourceFeedService = sourceFeedService;
-		this.objectMapper = new ObjectMapper();
+		
+		objectMapper = new ObjectMapper();
+		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 	}
 
 
-	public String exportUsersData() {
+	public byte[] exportUsersData() {
 		return serialize(collectUsersData(), Data.TYPE_USERS);
 	}
 
 	
-	public String exportDigestsData(User owner) {
+	public byte[] exportDigestsData(User owner) {
 		return serialize(collectDigestsData(Objects.requireNonNull(owner)), Data.TYPE_DIGESTS);
 	}
 	
 	
-	public String exportSourceFeedsData(Digest digest) {
+	public byte[] exportSourceFeedsData(Digest digest) {
 		return serialize(collectSourceFeedsData(Objects.requireNonNull(digest)), Data.TYPE_SOURCE_FEEDS);
 	}
 	
 	
-	private String serialize(Collection<?> dataItems, String dataType) {
+	private byte[] serialize(Collection<?> dataItems, String dataType) {
 		assert dataItems != null;
 		assert StringUtils.equalsAny(dataType, Data.TYPE_USERS, Data.TYPE_DIGESTS, Data.TYPE_SOURCE_FEEDS);
 		
 		try {
-			return objectMapper.writeValueAsString(new Data<>(dataItems, dataType));
+			return objectMapper.writeValueAsBytes(new Data<>(dataItems, dataType));
 		}
 		catch (JsonProcessingException e) {
 			throw new DataExportException(e);

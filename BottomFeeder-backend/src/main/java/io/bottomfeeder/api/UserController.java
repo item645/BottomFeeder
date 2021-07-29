@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.bottomfeeder.api.model.Response;
 import io.bottomfeeder.api.model.UserRequest;
 import io.bottomfeeder.api.model.UserResponse;
+import io.bottomfeeder.data.DataExportService;
 import io.bottomfeeder.security.Role;
 import io.bottomfeeder.user.UserService;
 
@@ -33,10 +35,12 @@ import io.bottomfeeder.user.UserService;
 class UserController {
 
 	private final UserService userService;
+	private final DataExportService dataExportService;
 
 	
-	public UserController(UserService userService) {
+	public UserController(UserService userService, DataExportService dataExportService) {
 		this.userService = userService;
+		this.dataExportService = dataExportService;
 	}
 
 
@@ -72,6 +76,12 @@ class UserController {
 	public Response<Void> deleteUser(@PathVariable long id) {
 		userService.deleteUser(id);
 		return new Response<>("User deleted successfully");
+	}
+	
+	
+	@GetMapping("/export")
+	public ResponseEntity<byte[]> exportUsers() {
+		return Utils.createBinaryJsonResponse(dataExportService.exportUsersData());
 	}
 	
 }

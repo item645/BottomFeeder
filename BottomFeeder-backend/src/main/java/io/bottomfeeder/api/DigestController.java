@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,6 +24,7 @@ import io.bottomfeeder.api.model.DigestRequest;
 import io.bottomfeeder.api.model.DigestResponse;
 import io.bottomfeeder.api.model.DigestTitleResponse;
 import io.bottomfeeder.api.model.Response;
+import io.bottomfeeder.data.DataExportService;
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.digest.DigestService;
 import io.bottomfeeder.digest.feed.DigestFeedFormat;
@@ -39,11 +41,16 @@ class DigestController {
 
 	private final DigestService digestService;
 	private final UserService userService;
+	private final DataExportService dataExportService;
 
 	
-	public DigestController(DigestService digestService, UserService userService) {
+	public DigestController(
+			DigestService digestService, 
+			UserService userService, 
+			DataExportService dataExportService) {
 		this.digestService = digestService;
 		this.userService = userService;
+		this.dataExportService = dataExportService;
 	}
 	
 	
@@ -114,6 +121,12 @@ class DigestController {
 	public Response<Void> deleteDigest(@PathVariable long id) {
 		digestService.deleteDigest(id);
 		return new Response<>("Digest deleted successfully");
+	}
+	
+	
+	@GetMapping("/own/export")
+	public ResponseEntity<byte[]> exportOwnDigests() {
+		return Utils.createBinaryJsonResponse(dataExportService.exportDigestsData(userService.getAuthenticatedUser()));
 	}
 	
 	
