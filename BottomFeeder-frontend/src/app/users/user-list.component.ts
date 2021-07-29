@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { PrincipalService } from '../core/auth/principal.service';
 import { User } from './user.model';
 import { UserService } from './user.service';
+import { saveAs } from "file-saver";
 
 @Component({
 	selector: 'app-user-list',
@@ -19,6 +20,10 @@ export class UserListComponent implements OnInit {
 
 	deleteUser(id: number) {
 		this.userService.deleteUser(id).subscribe(() => this.users = this.users.filter(u => u.id !== id));
+	}
+
+	exportUsers() {
+		this.userService.exportUsers().subscribe(usersData => saveAs(usersData, 'users_data.json'));
 	}
 
 	isCurrentUser(login: string) {

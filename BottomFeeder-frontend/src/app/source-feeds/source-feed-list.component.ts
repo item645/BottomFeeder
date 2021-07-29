@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Digest } from '../digests/digest.model';
 import { SourceFeed } from './source-feed.model';
 import { SourceFeedService } from './source-feed.service';
+import { saveAs } from "file-saver";
 
 @Component({
 	selector: 'source-feed-list',
@@ -27,5 +28,11 @@ export class SourceFeedListComponent implements OnInit {
 		this.sourceFeedService
 			.deleteSourceFeed(id)
 			.subscribe(() => this.sourceFeeds = this.sourceFeeds.filter(feed => feed.id !== id));
+	}
+
+	exportSourceFeeds() {
+		this.sourceFeedService
+			.exportSourceFeeds(this.digest.id)
+			.subscribe(sourceFeedsData => saveAs(sourceFeedsData, `digest_${this.digest.id}_source_feeds.json`));
 	}
 }

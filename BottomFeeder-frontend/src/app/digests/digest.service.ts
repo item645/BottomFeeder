@@ -43,4 +43,8 @@ export class DigestService {
 		return this.http.delete<void>(`${this.baseURL}/${id}`);
 	}
 	
+	exportOwnDigests() {
+		return this.http.get(`${this.baseURL}/own/export`, { responseType: 'blob' });
+	}
+
 }

@@ -1,7 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { PrincipalService } from '../core/auth/principal.service';
 import { Digest } from './digest.model';
 import { DigestService } from './digest.service';
+import { saveAs } from "file-saver";
 
 @Component({
 	selector: 'digest-list',
@@ -15,7 +17,11 @@ export class DigestListComponent implements OnInit {
 
 	digests: Digest[] = [];
 
-	constructor(private route: ActivatedRoute, private digestService: DigestService) { }
+	constructor(
+		private route: ActivatedRoute, 
+		private digestService: DigestService, 
+		private principal: PrincipalService
+	) { }
 
 	ngOnInit() {
 		let url = this.route.snapshot.url;
@@ -41,5 +47,10 @@ export class DigestListComponent implements OnInit {
 
 	deleteDigest(id: number) {
 		this.digestService.deleteDigest(id).subscribe(() => this.digests = this.digests.filter(digest => digest.id !== id));
+	}
+
+	exportDigests() {
+		let currentLogin = this.principal.getAccount().login;
+		this.digestService.exportOwnDigests().subscribe(digestsData => saveAs(digestsData, `${currentLogin}_digests.json`));
 	}
 }

@@ -31,4 +31,8 @@ export class UserService {
 		return this.http.delete<void>(`${this.baseURL}/${id}`);
 	}
 
+	exportUsers() {
+		return this.http.get(`${this.baseURL}/export`, { responseType: 'blob' });
+	}
+
 }
