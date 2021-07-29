@@ -31,7 +31,7 @@ record Data<T>(
 	 * Custom serializer for {@code Data} instances that sets field name for data items array
 	 * according to specified data type.
 	 */
-	private static class Serializer extends JsonSerializer<Data<?>> {
+	static class Serializer extends JsonSerializer<Data<?>> {
 
 		@Override
 		public void serialize(Data<?> data, JsonGenerator jsonGenerator, SerializerProvider serializers) 
