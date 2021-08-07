@@ -2,7 +2,6 @@ package io.bottomfeeder.digest;
 
 import static java.lang.String.format;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -183,8 +182,6 @@ public class DigestService {
 		
 		// TODO measure and optimize this sequence for performance (if needed)
 		var entries = sourceFeedService.loadDigestSourceFeedsContent(digest).stream()
-				.map(SyndFeed::getEntries)
-				.<SyndEntry>flatMap(Collection::stream)
 				.map(entry -> fixEntryDate(entry, digestFeedFormat))
 				.filter(Objects::nonNull) // filter out entries without published/updated date
 				.sorted(ENTRY_DATE_DESC)

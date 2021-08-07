@@ -15,10 +15,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import com.rometools.rome.feed.synd.SyndFeed;
+
 import io.bottomfeeder.sourcefeed.SourceFeed;
-import io.bottomfeeder.sourcefeed.SourceFeedContent;
 import io.bottomfeeder.sourcefeed.SourceFeedException;
 import io.bottomfeeder.sourcefeed.SourceFeedRepository;
+import io.bottomfeeder.sourcefeed.entry.SourceFeedEntryService;
 import io.bottomfeeder.util.TransactionalRunner;
 
 /**
@@ -35,17 +37,20 @@ public class SourceFeedContentUpdateService {
 	private static final Logger logger = LoggerFactory.getLogger(SourceFeedContentUpdateService.class);
 	
 	private final SourceFeedRepository sourceFeedRepository;
+	private final SourceFeedEntryService sourceFeedEntryService;
 	private final ThreadPoolTaskExecutor taskExecutor;
 	private final TransactionalRunner transactionalRunner;
 	
-	private final ConcurrentHashMap<Long, FutureTask<SourceFeedContent>> updaters = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<Long, FutureTask<SyndFeed>> updaters = new ConcurrentHashMap<>();
 
 	
 	public SourceFeedContentUpdateService(
-			SourceFeedRepository sourceFeedRepository, 
+			SourceFeedRepository sourceFeedRepository,
+			SourceFeedEntryService sourceFeedEntryService,
 			ThreadPoolTaskExecutor taskExecutor, 
 			TransactionalRunner transactionalRunner) {
 		this.sourceFeedRepository = sourceFeedRepository;
+		this.sourceFeedEntryService = sourceFeedEntryService;
 		this.taskExecutor = taskExecutor;
 		this.transactionalRunner = transactionalRunner;
 	}
@@ -55,13 +60,13 @@ public class SourceFeedContentUpdateService {
 	public void runScheduledUpdate() {
 		logger.info("Starting scheduled update of source feeds...");
 		
-		sourceFeedRepository.findAllSummaries().stream()
+		sourceFeedRepository.findAll().stream()
 			.filter(this::isReadyForUpdate)
 			.forEach(this::runScheduledFeedUpdate);
 	}
 
 	
-	public SourceFeedContent loadLatestContent(SourceFeed sourceFeed) {
+	public SyndFeed loadLatestContent(SourceFeed sourceFeed) {
 		return sourceFeed.getId() == null 
 				? loadLatestContentForNewFeed(sourceFeed) : loadLatestContentForExistingFeed(sourceFeed);
 	}
@@ -82,7 +87,7 @@ public class SourceFeedContentUpdateService {
 	}
 	
 	
-	private SourceFeedContent loadLatestContentForNewFeed(SourceFeed sourceFeed) {
+	private SyndFeed loadLatestContentForNewFeed(SourceFeed sourceFeed) {
 		return new SourceFeedContentLoader.Builder(sourceFeed)
 				.onStart(this::reportOnDemandContentLoadStart)
 				.build()
@@ -90,7 +95,7 @@ public class SourceFeedContentUpdateService {
 	}
 	
 	
-	private SourceFeedContent loadLatestContentForExistingFeed(SourceFeed sourceFeed) {
+	private SyndFeed loadLatestContentForExistingFeed(SourceFeed sourceFeed) {
 		try {
 			// When there is an executing updater task for this feed, we don't start a new one,
 			// instead we are joining in and wait for shared result to be available.
@@ -121,7 +126,7 @@ public class SourceFeedContentUpdateService {
 	}
 	
 	
-	private FutureTask<SourceFeedContent> createScheduledUpdateTask(SourceFeed sourceFeed) {
+	private FutureTask<SyndFeed> createScheduledUpdateTask(SourceFeed sourceFeed) {
 		return new SourceFeedContentLoader.Builder(sourceFeed)
 				.onStart(this::reportScheduledUpdateStart)
 				.onSuccess(this::saveUpdatedContent)
@@ -154,14 +159,18 @@ public class SourceFeedContentUpdateService {
 	}
 	
 	
-	private void saveUpdatedContent(SourceFeed sourceFeed, SourceFeedContent updatedContent) {
+	private void saveUpdatedContent(SourceFeed sourceFeed, SyndFeed newFeedData) {
 		ensureHasId(sourceFeed);
 		if (updaters.containsKey(sourceFeed.getId())) {
 			transactionalRunner.run(() -> {
-				sourceFeedRepository.findSummaryAndLockById(sourceFeed.getId()).ifPresent(currentSourceFeed -> {
-					currentSourceFeed.setUpdatedContent(updatedContent);
+				sourceFeedRepository.findAndLockById(sourceFeed.getId()).ifPresent(currentSourceFeed -> {
+					sourceFeedEntryService.replaceSourceFeedEntries(newFeedData, currentSourceFeed);
+					
+					currentSourceFeed.setAbbreviatedTitle(newFeedData.getTitle());
+					currentSourceFeed.setContentUpdateDate(Instant.now());
 					sourceFeedRepository.save(currentSourceFeed);
-					logger.info(format("Updated %s with latest data", getFeedInfo(sourceFeed)));
+					
+					logger.info(format("Updated %s with latest data", getFeedInfo(currentSourceFeed)));
 				});
 			});
 		}

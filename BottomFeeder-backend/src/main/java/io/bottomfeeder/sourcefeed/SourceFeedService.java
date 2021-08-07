@@ -2,29 +2,23 @@ package io.bottomfeeder.sourcefeed;
 
 import static java.lang.String.format;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.rometools.rome.feed.synd.SyndFeed;
-import com.rometools.rome.io.FeedException;
-import com.rometools.rome.io.SyndFeedInput;
-import com.rometools.rome.io.XmlReader;
+import com.rometools.rome.feed.synd.SyndEntry;
 
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.digest.DigestRepository;
+import io.bottomfeeder.sourcefeed.entry.SourceFeedEntryService;
 import io.bottomfeeder.sourcefeed.update.SourceFeedContentUpdateService;
 
 /**
@@ -33,30 +27,31 @@ import io.bottomfeeder.sourcefeed.update.SourceFeedContentUpdateService;
 @Service
 public class SourceFeedService {
 
-	private static final Logger logger = LoggerFactory.getLogger(SourceFeedService.class);
-	
 	private final SourceFeedRepository sourceFeedRepository;
 	private final SourceFeedContentUpdateService sourceFeedContentUpdateService;
+	private final SourceFeedEntryService sourceFeedEntryService;
 	private final DigestRepository digestRepository;
 
 	
 	public SourceFeedService(
 			SourceFeedRepository sourceFeedRepository, 
 			SourceFeedContentUpdateService sourceFeedContentUpdateService,
+			SourceFeedEntryService sourceFeedEntryService,
 			DigestRepository digestRepository) {
 		this.sourceFeedRepository = sourceFeedRepository;
 		this.sourceFeedContentUpdateService = sourceFeedContentUpdateService;
+		this.sourceFeedEntryService = sourceFeedEntryService;
 		this.digestRepository = digestRepository;
 	}
 	
 	
 	public SourceFeed getSourceFeed(long id) {
-		return getSourceFeed(sourceFeedRepository::findSummaryById, id);
+		return getSourceFeed(sourceFeedRepository::findById, id);
 	}
 
 	
 	public List<SourceFeed> getDigestSourceFeeds(Digest digest) {
-		return sourceFeedRepository.findSummariesByDigest(digest);
+		return sourceFeedRepository.findByDigestOrderByCreationDateDesc(digest);
 	}
 	
 	
@@ -68,10 +63,7 @@ public class SourceFeedService {
 			throw duplicateSourceFeedError(source, digest);
 		
 		var sourceFeed = new SourceFeed(source, contentUpdateInterval, digest);
-		if (updateContent)
-			sourceFeed.setUpdatedContent(sourceFeedContentUpdateService.loadLatestContent(sourceFeed));
-		
-		return sourceFeedRepository.save(sourceFeed);
+		return updateContent ? updateContentAndSave(sourceFeed) : sourceFeedRepository.save(sourceFeed);
 	}
 	
 	
@@ -96,16 +88,35 @@ public class SourceFeedService {
 			sourceFeed.setSource(newSource);
 			sourceFeedContentUpdateService.cancelUpdate(id);
 			if (!updateContent)
-				sourceFeed.setUpdatedContent(null);
+				// if source changed, purge content-related data as it's no longer relevant and must be updated anyway
+				purgeContent(sourceFeed);
 		}
 		
 		sourceFeed.setDigest(newDigest);
 		sourceFeed.setContentUpdateInterval(newContentUpdateInterval);
-			
-		if (updateContent)
-			sourceFeed.setUpdatedContent(sourceFeedContentUpdateService.loadLatestContent(sourceFeed));
 		
-		return sourceFeedRepository.save(sourceFeed);
+		return updateContent ? updateContentAndSave(sourceFeed) : sourceFeedRepository.save(sourceFeed);
+	}
+	
+	
+	private SourceFeed updateContentAndSave(SourceFeed sourceFeed) {
+		var newFeedData = sourceFeedContentUpdateService.loadLatestContent(sourceFeed);
+		sourceFeed.setAbbreviatedTitle(newFeedData.getTitle());
+		sourceFeed.setContentUpdateDate(Instant.now());
+		
+		sourceFeed = sourceFeedRepository.save(sourceFeed);
+		sourceFeedEntryService.replaceSourceFeedEntries(newFeedData, sourceFeed);
+		
+		return sourceFeed;
+	}
+	
+	
+	private void purgeContent(SourceFeed sourceFeed) {
+		assert sourceFeed.getId() != null;
+		
+		sourceFeedEntryService.deleteSourceFeedEntries(sourceFeed);
+		sourceFeed.setTitle(null);
+		sourceFeed.setContentUpdateDate(null);
 	}
 	
 	
@@ -156,42 +167,26 @@ public class SourceFeedService {
 	}
 	
 	
+	@Transactional
 	public void deleteSourceFeed(long id) {
 		sourceFeedContentUpdateService.cancelUpdate(id);
+		sourceFeedEntryService.deleteSourceFeedEntries(id);
 		sourceFeedRepository.deleteById(id);
 	}
 	
 	
+	@Transactional
 	public void deleteDigestSourceFeeds(Digest digest) {
-		sourceFeedRepository.findIdsByDigest(digest).stream().forEach(sourceFeedContentUpdateService::cancelUpdate);
-		sourceFeedRepository.deleteByDigest(digest);
+		sourceFeedRepository.findIdsByDigest(digest).stream().forEach(this::deleteSourceFeed);
 	}
 	
 	
 	@Transactional
-	public Collection<SyndFeed> loadDigestSourceFeedsContent(Digest digest) {
+	public List<SyndEntry> loadDigestSourceFeedsContent(Digest digest) {
 		return sourceFeedRepository.findByDigest(digest).stream()
-				.map(SourceFeedService::readSourceFeedContent)
-				.filter(Objects::nonNull)
+				.map(sourceFeedEntryService::loadSourceFeedContent)
+				.<SyndEntry>flatMap(Collection::stream)
 				.collect(Collectors.toList());
-	}
-	
-	
-	private static SyndFeed readSourceFeedContent(SourceFeed sourceFeed) {
-		var content = sourceFeed.getContent();
-		if (!StringUtils.isBlank(content)) {
-			try (var input = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))) {
-				return new SyndFeedInput().build(new XmlReader(input));
-			}
-			catch (IllegalArgumentException | FeedException | IOException e) {
-				logger.error(format("Failed to read content of source feed %s while building a digest feed: %s",
-						sourceFeed.getSource(), sourceFeed.getDigest().getExternalId(), e));
-				return null;
-			}
-		}
-		else {
-			return null;
-		}
 	}
 	
 }

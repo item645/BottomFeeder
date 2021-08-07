@@ -8,7 +8,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -75,9 +74,6 @@ public class SourceFeed {
 	@Column(name = "content_update_interval")
 	private int contentUpdateInterval;
 	
-	@Lob
-	private String content;
-	
 	@NotNull(message = VALIDATION_DIGEST_NULL)
 	@ManyToOne(optional = false)
 	private Digest digest;
@@ -90,17 +86,7 @@ public class SourceFeed {
 		this.contentUpdateInterval = contentUpdateInterval;
 		this.digest = digest;
 	}
-	
-	public SourceFeed(Long id, String source, String title, Instant creationDate, Instant contentUpdateDate, 
-			int contentUpdateInterval, Digest digest) {
-		this.id = id;
-		this.source = source;
-		this.title = title;
-		this.creationDate = creationDate;
-		this.contentUpdateDate = contentUpdateDate;
-		this.contentUpdateInterval = contentUpdateInterval;
-		this.digest = digest;
-	}
+
 
 	public Long getId() {
 		return id;
@@ -150,34 +136,12 @@ public class SourceFeed {
 		this.contentUpdateInterval = contentUpdateInterval;
 	}
 
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
-	}
-
 	public Digest getDigest() {
 		return digest;
 	}
 
 	public void setDigest(Digest digest) {
 		this.digest = digest;
-	}
-	
-	@Transient
-	public void setUpdatedContent(SourceFeedContent updatedContent) {
-		if (updatedContent != null) {
-			title = updatedContent.title();
-			content = updatedContent.content();
-			contentUpdateDate = updatedContent.updateDate();
-		}
-		else {
-			title = null;
-			content = null;
-			contentUpdateDate = null;
-		}
 	}
 	
 	@Transient
@@ -189,4 +153,10 @@ public class SourceFeed {
 	public String getTruncatedSource() {
 		return StringUtils.abbreviate(source, 80);
 	}
+	
+	@Transient
+	public void setAbbreviatedTitle(String title) {
+		this.title = StringUtils.abbreviate(StringUtils.trimToNull(title), SourceFeed.TITLE_MAX_SIZE);
+	}
+	
 }
