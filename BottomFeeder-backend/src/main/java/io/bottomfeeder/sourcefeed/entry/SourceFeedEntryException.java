@@ -7,6 +7,10 @@ import io.bottomfeeder.base.EntityException;
  */
 @SuppressWarnings("serial")
 class SourceFeedEntryException extends EntityException {
+	
+	SourceFeedEntryException(String message) {
+		super(message);
+	}
 
 	SourceFeedEntryException(Throwable cause) {
 		super(cause);

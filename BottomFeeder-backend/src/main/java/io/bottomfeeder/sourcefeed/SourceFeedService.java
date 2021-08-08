@@ -4,17 +4,13 @@ import static java.lang.String.format;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.rometools.rome.feed.synd.SyndEntry;
 
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.digest.DigestRepository;
@@ -88,7 +84,8 @@ public class SourceFeedService {
 			sourceFeed.setSource(newSource);
 			sourceFeedContentUpdateService.cancelUpdate(id);
 			if (!updateContent)
-				// if source changed, purge content-related data as it's no longer relevant and must be updated anyway
+				// If source changed, purge content-related data as it's no longer relevant 
+				// and must be updated anyway
 				purgeContent(sourceFeed);
 		}
 		
@@ -178,15 +175,6 @@ public class SourceFeedService {
 	@Transactional
 	public void deleteDigestSourceFeeds(Digest digest) {
 		sourceFeedRepository.findIdsByDigest(digest).stream().forEach(this::deleteSourceFeed);
-	}
-	
-	
-	@Transactional
-	public List<SyndEntry> loadDigestSourceFeedsContent(Digest digest) {
-		return sourceFeedRepository.findByDigest(digest).stream()
-				.map(sourceFeedEntryService::loadSourceFeedContent)
-				.<SyndEntry>flatMap(Collection::stream)
-				.collect(Collectors.toList());
 	}
 	
 }

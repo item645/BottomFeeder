@@ -1,5 +1,7 @@
 package io.bottomfeeder.sourcefeed.entry;
 
+import static java.lang.String.format;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -23,6 +25,8 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.SyndFeedOutput;
 import com.rometools.rome.io.XmlReader;
 
+import io.bottomfeeder.digest.Digest;
+import io.bottomfeeder.digest.feed.DigestFeedFormat;
 import io.bottomfeeder.sourcefeed.SourceFeed;
 
 /**
@@ -45,14 +49,13 @@ public class SourceFeedEntryService {
 
 	
 	@Transactional
-	public List<SyndEntry> loadSourceFeedContent(SourceFeed sourceFeed) {
-		return sourceFeedEntryRepository.findBySourceFeed(sourceFeed).stream()
-				.map(this::readSourceFeedEntryContent)
+	public List<SyndEntry> loadDigestFeedContent(Digest digest, DigestFeedFormat targetFormat) {
+		return sourceFeedEntryRepository.findDigestFeedEntries(digest).stream()
+				.map(sourceFeedEntry -> readSourceFeedEntryContent(sourceFeedEntry, targetFormat))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
-		
 	}
-
+	
 	
 	@Transactional
 	public void replaceSourceFeedEntries(SyndFeed newFeedData, SourceFeed sourceFeed) {
@@ -64,6 +67,7 @@ public class SourceFeedEntryService {
 		var feedType = newFeedData.getFeedType();
 		var sourceFeedEntries = newFeedData.getEntries().stream()
 				.map(syndEntry -> createSourceFeedEntry(syndEntry, feedType, sourceFeed))
+				.filter(Objects::nonNull) // filter out entries without published and updated date
 				.collect(Collectors.toList());
 		
 		sourceFeedEntryRepository.saveAll(sourceFeedEntries);
@@ -80,14 +84,36 @@ public class SourceFeedEntryService {
 	}
 	
 	
-	private SyndEntry readSourceFeedEntryContent(SourceFeedEntry sourceFeedEntry) {
+	private SyndEntry readSourceFeedEntryContent(SourceFeedEntry sourceFeedEntry, DigestFeedFormat targetFormat) {
 		try (var input = new ByteArrayInputStream(sourceFeedEntry.getContent())) {
-			var entryFeed = syndFeedInput.build(new XmlReader(input));
-			return entryFeed.getEntries().get(0);
+			var syndEntry = syndFeedInput.build(new XmlReader(input)).getEntries().get(0);
+			fixEntryDate(syndEntry, sourceFeedEntry, targetFormat);
+			return syndEntry;
 		}
 		catch (IOException | IllegalArgumentException | FeedException e) {
-			logger.error(String.format("Failed to read content of source feed entry %d", sourceFeedEntry.getId()), e);
+			logger.error(format("Failed to read content of source feed entry %d", sourceFeedEntry.getId()), e);
 			return null;
+		}
+	}
+	
+	
+	private static void fixEntryDate(SyndEntry syndEntry, SourceFeedEntry sourceFeedEntry, 
+			DigestFeedFormat targetFormat) {
+		var pubDate = syndEntry.getPublishedDate();
+		if (pubDate == null) {
+			var updatedDate = syndEntry.getUpdatedDate();
+			if (updatedDate == null) {
+				// Should not happen as we have filtered out all such entries on content save
+				var message = format("Invalid content of source feed entry %d: missing published and updated date",
+						sourceFeedEntry.getId());
+				throw new SourceFeedEntryException(message);
+			}
+			else if (targetFormat == DigestFeedFormat.RSS_2_0) {
+				// During Atom to RSS conversion updated date won't be serialized because RSS format
+				// doesn't support this field for entries. So, if pub date is absent too, we will 
+				// have to use updated date as pub date instead.
+				syndEntry.setPublishedDate(updatedDate);
+			}
 		}
 	}
 	
@@ -100,8 +126,8 @@ public class SourceFeedEntryService {
 			return new SourceFeedEntry(date, getContentBytes(entryFeed), sourceFeed);
 		}
 		else {
-			var message = String.format("Could not create source feed entry for SyndEntry instance "
-					+ "of source feed %s because it has neither published nor updated date",
+			var message = format("Could not create source feed entry for SyndEntry instance "
+					+ "of source feed %s because it contains neither published nor updated date",
 					sourceFeed.getSource());
 			logger.warn(message);
 			return null;
@@ -110,6 +136,7 @@ public class SourceFeedEntryService {
 	
 	
 	private static SyndFeed createEntryFeed(SyndEntry syndEntry, String feedType) {
+		// Dummy feed for single entry
 		var entryFeed = new SyndFeedImpl();
 		entryFeed.setFeedType(feedType);
 		entryFeed.setTitle("");

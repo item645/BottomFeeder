@@ -2,11 +2,7 @@ package io.bottomfeeder.digest;
 
 import static java.lang.String.format;
 
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,12 +10,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.feed.synd.SyndFeedImpl;
 
 import io.bottomfeeder.digest.feed.DigestFeedFormat;
 import io.bottomfeeder.sourcefeed.SourceFeedService;
+import io.bottomfeeder.sourcefeed.entry.SourceFeedEntryService;
 import io.bottomfeeder.user.User;
 
 /**
@@ -28,45 +24,22 @@ import io.bottomfeeder.user.User;
 @Service
 public class DigestService {
 
-	private static final Comparator<SyndEntry> ENTRY_DATE_DESC = new FeedEntryDateComparator();
-	
 	private final DigestRepository digestRepository;
 	private final SourceFeedService sourceFeedService;
+	private final SourceFeedEntryService sourceFeedEntryService;
 	private final String applicationName;
 	private final String applicationUrl;
-	
-	
-	/**
-	 * A comparator that compares feed entries by either published or updated date
-	 * (whichever is present), imposing a descending order on them.
-	 */
-	private static class FeedEntryDateComparator implements Comparator<SyndEntry> {
-
-		@Override
-		public int compare(SyndEntry entry1, SyndEntry entry2) {
-			return getDate(entry2).compareTo(getDate(entry1));
-		}
-		
-		private static Date getDate(SyndEntry entry) {
-			var date = entry.getPublishedDate();
-			if (date == null) {
-				date = entry.getUpdatedDate();
-				if (date == null)
-					throw new IllegalArgumentException("SyndEntry should contain either published date"
-							+ " or updated date");
-			}
-			return date;
-		}
-	}
 	
 	
 	public DigestService(
 			DigestRepository digestRepository, 
 			SourceFeedService sourceFeedService,
+			SourceFeedEntryService sourceFeedEntryService,
 			@Value("${bf.application.name}") String applicationName,
 			@Value("${bf.application.url}") String applicationUrl) {
 		this.digestRepository = digestRepository;
 		this.sourceFeedService = sourceFeedService;
+		this.sourceFeedEntryService = sourceFeedEntryService;
 		this.applicationName = checkPropertyValue(applicationName, "Application name").trim();
 		this.applicationUrl = checkPropertyValue(applicationUrl, "Application URL").trim();
 	}
@@ -179,16 +152,8 @@ public class DigestService {
 		digestFeed.setDescription(digest.getTitle());
 		digestFeed.setGenerator(applicationName);
 		digestFeed.setLink(getDigestFeedLink(externalId, digestFeedFormat));
+		digestFeed.setEntries(sourceFeedEntryService.loadDigestFeedContent(digest, digestFeedFormat));
 		
-		// TODO measure and optimize this sequence for performance (if needed)
-		var entries = sourceFeedService.loadDigestSourceFeedsContent(digest).stream()
-				.map(entry -> fixEntryDate(entry, digestFeedFormat))
-				.filter(Objects::nonNull) // filter out entries without published/updated date
-				.sorted(ENTRY_DATE_DESC)
-				.limit(digest.getMaxItems())
-				.collect(Collectors.toList());
-		
-		digestFeed.setEntries(entries);
 		return digestFeed;
 	}
 	
@@ -196,22 +161,6 @@ public class DigestService {
 	private Digest getDigest(String externalId) {
 		return digestRepository.findOneByExternalId(externalId).orElseThrow(
 				() -> new DigestException(format("Digest with id '%s' not found", externalId)));
-	}
-
-	
-	private static SyndEntry fixEntryDate(SyndEntry entry, DigestFeedFormat targetFormat) {
-		var pubDate = entry.getPublishedDate();
-		if (pubDate == null) {
-			var updatedDate = entry.getUpdatedDate();
-			if (updatedDate == null)
-				return null;
-			else if (targetFormat == DigestFeedFormat.RSS_2_0)
-				// During Atom to RSS conversion updated date won't be serialized because RSS format
-				// doesn't support this field for entries. So, if pub date is absent too, we will 
-				// have to use updated date as pub date instead.
-				entry.setPublishedDate(updatedDate);
-		}
-		return entry;
 	}
 	
 }
