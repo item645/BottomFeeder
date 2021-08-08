@@ -10,8 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-
 import io.bottomfeeder.sourcefeed.SourceFeed;
 
 /**
@@ -32,16 +30,13 @@ public class SourceFeedEntry {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@NotNull
 	@Column(nullable = false)
 	private Instant date;
 	
-	@NotNull
 	@Lob
 	@Column(nullable = false)
 	private byte[] content;
 	
-	@NotNull
 	@ManyToOne(optional = false)
 	private SourceFeed sourceFeed;
 
