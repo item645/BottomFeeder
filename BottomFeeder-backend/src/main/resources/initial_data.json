@@ -11,7 +11,7 @@
         {
           "externalId": "dvx3f0ojj8j4im7b",
           "title": "Test Digest 1",
-          "maxItems": 50,
+          "maxEntries": 50,
           "isPrivate": false,
           "sourceFeeds": [
             {
@@ -37,7 +37,7 @@
         {
           "externalId": "rbe9k8d90dc4ste4",
           "title": "Test Digest 2",
-          "maxItems": 100,
+          "maxEntries": 100,
           "isPrivate": true,
           "sourceFeeds": [
             {

@@ -34,7 +34,7 @@ export class DigestComponent implements OnInit {
 
 		let controls = {
 			title: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(200)]],
-			maxItems: [20, [Validators.required, Validators.min(1), Validators.max(500)]],
+			maxEntries: [20, [Validators.required, Validators.min(1), Validators.max(500)]],
 			isPrivate: [false]
 		}
 		this.form = this.formBuilder.group(controls);
@@ -82,7 +82,7 @@ export class DigestComponent implements OnInit {
 	private setDigest(digest: Digest) {
 		this.digest = digest;
 		this.f.title.setValue(digest.title);
-		this.f.maxItems.setValue(digest.maxItems);
+		this.f.maxEntries.setValue(digest.maxEntries);
 		this.f.isPrivate.setValue(digest.isPrivate);
 	}
 

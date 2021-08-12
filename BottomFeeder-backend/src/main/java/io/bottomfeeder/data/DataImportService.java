@@ -157,7 +157,7 @@ public class DataImportService {
 	
 	
 	private void saveDigestData(DigestData digestData, User owner) {
-		var digest = digestService.createDigest(owner, digestData.title(), digestData.maxItems(), 
+		var digest = digestService.createDigest(owner, digestData.title(), digestData.maxEntries(), 
 				digestData.isPrivate(), digestData.externalId());
 		digestData.sourceFeeds().forEach(sourceFeedData -> saveSourceFeedData(sourceFeedData, digest));
 	}

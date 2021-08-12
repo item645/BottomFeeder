@@ -38,7 +38,7 @@ interface SourceFeedEntryRepository extends JpaRepository<SourceFeedEntry, Long>
 	
 	
 	default List<SourceFeedEntry> findDigestFeedEntries(Digest digest) {
-		return findDigestFeedEntries(digest, PageRequest.of(0, digest.getMaxItems()));
+		return findDigestFeedEntries(digest, PageRequest.of(0, digest.getMaxEntries()));
 	}
 	
 }

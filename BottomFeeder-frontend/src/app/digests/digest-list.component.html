@@ -10,7 +10,7 @@
 				<th style="width: 15%">External ID</th>
 				<th style="width: 15%" *ngIf="!isOwnDigests">Owner</th>
 				<th style="width: 15%">Creation Date</th>
-				<th style="width: 15%">Max Items</th>
+				<th style="width: 15%">Max Entries</th>
 				<th style="width: 10%">Is Private</th>
 				<th style="width: 10%">Actions</th>
 			</tr>
@@ -22,7 +22,7 @@
 				<td>{{digest.externalId}}</td>
 				<td *ngIf="!isOwnDigests">{{digest.ownerLogin}}</td>
 				<td>{{digest.creationDate | date:'medium'}}</td>
-				<td>{{digest.maxItems}}</td>
+				<td>{{digest.maxEntries}}</td>
 				<td>{{digest.isPrivate}}</td>
 				<td style="white-space: nowrap">
 					<a routerLink="../edit/{{digest.id}}" class="btn btn-sm btn-primary mr-1">Edit</a>

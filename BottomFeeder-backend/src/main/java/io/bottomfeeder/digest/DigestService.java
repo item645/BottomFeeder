@@ -68,24 +68,24 @@ public class DigestService {
 	}
 	
 	
-	public Digest createDigest(User owner, String title, int maxItems, boolean isPrivate) {
-		return saveNewDigest(owner, title, maxItems, isPrivate, createUnusedExternalId(), false);
+	public Digest createDigest(User owner, String title, int maxEntries, boolean isPrivate) {
+		return saveNewDigest(owner, title, maxEntries, isPrivate, createUnusedExternalId(), false);
 	}
 	
 	
-	public Digest createDigest(User owner, String title, int maxItems, boolean isPrivate, String externalId) {
-		return saveNewDigest(owner, title, maxItems, isPrivate, externalId, true);
+	public Digest createDigest(User owner, String title, int maxEntries, boolean isPrivate, String externalId) {
+		return saveNewDigest(owner, title, maxEntries, isPrivate, externalId, true);
 	}
 	
 	
-	private Digest saveNewDigest(User owner, String title, int maxItems, boolean isPrivate, 
+	private Digest saveNewDigest(User owner, String title, int maxEntries, boolean isPrivate, 
 			String externalId, boolean checkExternalIdDuplicate) {
 		if (digestRepository.existsByTitleIgnoreCaseAndOwner(title, owner))
 			throw duplicateDigestError(title, owner);
 		if (checkExternalIdDuplicate && digestRepository.existsByExternalId(externalId))
 			throw new DigestException(format("Duplicate digest external ID: %s", externalId));
 		
-		return digestRepository.save(new Digest(title, maxItems, isPrivate, owner, externalId));
+		return digestRepository.save(new Digest(title, maxEntries, isPrivate, owner, externalId));
 	}
 	
 	
@@ -98,7 +98,7 @@ public class DigestService {
 	}
 	
 	
-	public Digest updateDigest(long id, String newTitle, int newMaxItems, boolean newIsPrivate) {
+	public Digest updateDigest(long id, String newTitle, int newMaxEntries, boolean newIsPrivate) {
 		var digest = getDigest(id);
 		var owner = digest.getOwner(); 
 		if (!digest.getTitle().equalsIgnoreCase(newTitle) 
@@ -106,7 +106,7 @@ public class DigestService {
 			throw duplicateDigestError(newTitle, owner);
 		
 		digest.setTitle(newTitle);
-		digest.setMaxItems(newMaxItems);
+		digest.setMaxEntries(newMaxEntries);
 		digest.setPrivate(newIsPrivate);
 		
 		return digestRepository.save(digest);

@@ -7,7 +7,7 @@ export class Digest {
 		public ownerLogin: string,
 		public title: string,
 		public creationDate: Date,
-		public maxItems: number,
+		public maxEntries: number,
 		public isPrivate: boolean
 	) { }
 }
@@ -15,7 +15,7 @@ export class Digest {
 export class NewDigest {
 	constructor(
 		public title: string,
-		public maxItems: number,
+		public maxEntries: number,
 		public isPrivate: boolean
 	) { }
 }

@@ -100,7 +100,7 @@ class DigestController {
 	public Response<DigestResponse> createDigest(@Valid @RequestBody DigestRequest digestRequest) {
 		var owner = userService.getAuthenticatedUser();
 		var digest = digestService.createDigest(owner, digestRequest.title(), 
-				digestRequest.maxItems(), digestRequest.isPrivate());
+				digestRequest.maxEntries(), digestRequest.isPrivate());
 		var message = String.format("Digest '%s' created successfully", digest.getTitle());
 		return new Response<>(message, createDigestResponse(digest));
 	}
@@ -110,7 +110,7 @@ class DigestController {
 	@PutMapping
 	public Response<DigestResponse> updateDigest(@Valid @RequestBody DigestRequest digestRequest) {
 		var updatedDigest = digestService.updateDigest(digestRequest.id(), digestRequest.title(), 
-				digestRequest.maxItems(), digestRequest.isPrivate());
+				digestRequest.maxEntries(), digestRequest.isPrivate());
 		var message = String.format("Digest '%s' updated successfully", updatedDigest.getTitle());
 		return new Response<>(message, createDigestResponse(updatedDigest));
 	}

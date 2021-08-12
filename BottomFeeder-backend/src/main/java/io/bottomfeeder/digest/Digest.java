@@ -30,9 +30,9 @@ public class Digest {
 	public static final int TITLE_MIN_SIZE = 1;
 	public static final int TITLE_MAX_SIZE = 200;
 	
-	public static final int MAX_ITEMS_MIN = 1;
-	public static final int MAX_ITEMS_MAX = 500;
-	public static final int MAX_ITEMS_DEFAULT = 20;
+	public static final int MAX_ENTRIES_MIN = 1;
+	public static final int MAX_ENTRIES_MAX = 500;
+	public static final int MAX_ENTRIES_DEFAULT = 20;
 	
 	public static final int EXTERNAL_ID_SIZE = 16;
 	private static final String EXTERNAL_ID_CHARS_STRING = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -45,8 +45,8 @@ public class Digest {
 	public static final String VALIDATION_EXTERNAL_ID_REGEX = "{validation.digest.external-id.regex}";
 	public static final String VALIDATION_EXTERNAL_ID_SIZE = "{validation.digest.external-id.size}";
 	private static final String VALIDATION_CREATION_DATE_NULL = "{validation.digest.creation-date.null}";
-	public static final String VALIDATION_MAX_ITEMS_MIN = "{validation.digest.max-items.min}";
-	public static final String VALIDATION_MAX_ITEMS_MAX = "{validation.digest.max-items.max}";
+	public static final String VALIDATION_MAX_ENTRIES_MIN = "{validation.digest.max-entries.min}";
+	public static final String VALIDATION_MAX_ENTRIES_MAX = "{validation.digest.max-entries.max}";
 	private static final String VALIDATION_OWNER_NULL = "{validation.digest.owner.null}";
 
 	@Id
@@ -68,10 +68,10 @@ public class Digest {
 	@Column(name = "creation_date", nullable = false)
 	private Instant creationDate = Instant.now();
 	
-	@Min(message = VALIDATION_MAX_ITEMS_MIN, value = MAX_ITEMS_MIN)
-	@Max(message = VALIDATION_MAX_ITEMS_MAX, value = MAX_ITEMS_MAX)
-	@Column(name = "max_items")
-	private int maxItems = MAX_ITEMS_DEFAULT;
+	@Min(message = VALIDATION_MAX_ENTRIES_MIN, value = MAX_ENTRIES_MIN)
+	@Max(message = VALIDATION_MAX_ENTRIES_MAX, value = MAX_ENTRIES_MAX)
+	@Column(name = "max_entries")
+	private int maxEntries = MAX_ENTRIES_DEFAULT;
 	
 	@Column(name = "is_private")
 	private boolean isPrivate;
@@ -84,9 +84,9 @@ public class Digest {
 	public Digest() {}
 
 	
-	public Digest(String title, int maxItems, boolean isPrivate, User owner, String externalId) {
+	public Digest(String title, int maxEntries, boolean isPrivate, User owner, String externalId) {
 		this.title = title;
-		this.maxItems = maxItems;
+		this.maxEntries = maxEntries;
 		this.isPrivate = isPrivate;
 		this.owner = owner;
 		this.externalId = externalId;
@@ -124,12 +124,12 @@ public class Digest {
 		this.creationDate = creationDate;
 	}
 
-	public int getMaxItems() {
-		return maxItems;
+	public int getMaxEntries() {
+		return maxEntries;
 	}
 
-	public void setMaxItems(int maxItems) {
-		this.maxItems = maxItems;
+	public void setMaxEntries(int maxEntries) {
+		this.maxEntries = maxEntries;
 	}
 
 	public boolean isPrivate() {

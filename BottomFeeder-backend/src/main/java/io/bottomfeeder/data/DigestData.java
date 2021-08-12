@@ -28,9 +28,9 @@ record DigestData(
 		@Size(message = VALIDATION_TITLE_SIZE, min = TITLE_MIN_SIZE, max = TITLE_MAX_SIZE)
 		String title,
 		
-		@Min(message = VALIDATION_MAX_ITEMS_MIN, value = MAX_ITEMS_MIN)
-		@Max(message = VALIDATION_MAX_ITEMS_MAX, value = MAX_ITEMS_MAX)
-		int maxItems,
+		@Min(message = VALIDATION_MAX_ENTRIES_MIN, value = MAX_ENTRIES_MIN)
+		@Max(message = VALIDATION_MAX_ENTRIES_MAX, value = MAX_ENTRIES_MAX)
+		int maxEntries,
 		
 		boolean isPrivate,
 		
@@ -43,7 +43,7 @@ record DigestData(
 		this(
 			digest.getExternalId(),
 			digest.getTitle(),
-			digest.getMaxItems(),
+			digest.getMaxEntries(),
 			digest.isPrivate(),
 			Objects.requireNonNull(sourceFeeds)
 			);

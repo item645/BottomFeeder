@@ -16,7 +16,7 @@ public record DigestResponse(
 		String ownerLogin,
 		String title,
 		Instant creationDate,
-		int maxItems,
+		int maxEntries,
 		boolean isPrivate)
 
 implements EntityModel<Digest> {
@@ -30,7 +30,7 @@ implements EntityModel<Digest> {
 			digest.getOwner().getLogin(),
 			digest.getTitle(),
 			digest.getCreationDate(),
-			digest.getMaxItems(),
+			digest.getMaxEntries(),
 			digest.isPrivate()
 			);
 	}
