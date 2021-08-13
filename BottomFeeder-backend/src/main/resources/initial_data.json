@@ -16,11 +16,13 @@
           "sourceFeeds": [
             {
               "source": "http://rss.slashdot.org/Slashdot/slashdotMainatom",
-              "contentUpdateInterval": 25
+              "contentUpdateInterval": 25,
+              "maxEntries": 20
             },
             {
               "source": "https://www.youtube.com/feeds/videos.xml?channel_id=UC16niRr50-MSBwiO3YDb3RA",
-              "contentUpdateInterval": 120
+              "contentUpdateInterval": 120,
+              "maxEntries": 0
             }
           ]
         }
@@ -42,7 +44,8 @@
           "sourceFeeds": [
             {
               "source": "https://en.wikipedia.org/w/index.php?title=Special:NewPages&feed=rss",
-              "contentUpdateInterval": 20
+              "contentUpdateInterval": 20,
+              "maxEntries": 15
             }
           ]
         }

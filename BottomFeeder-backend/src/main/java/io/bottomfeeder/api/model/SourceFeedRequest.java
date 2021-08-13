@@ -29,6 +29,10 @@ public record SourceFeedRequest(
 		@Max(message = VALIDATION_CONTENT_UPDATE_INTERVAL_MAX, value = CONTENT_UPDATE_INTERVAL_MAX)
 		int contentUpdateInterval,
 		
+		@Min(message = VALIDATION_MAX_ENTRIES_MIN, value = MAX_ENTRIES_MIN)
+		@Max(message = VALIDATION_MAX_ENTRIES_MAX, value = MAX_ENTRIES_MAX)
+		int maxEntries,
+		
 		boolean updateContent)
 
 implements EntityModel<SourceFeed> {

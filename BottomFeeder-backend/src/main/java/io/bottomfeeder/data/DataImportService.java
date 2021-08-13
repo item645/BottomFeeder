@@ -165,7 +165,7 @@ public class DataImportService {
 	
 	private void saveSourceFeedData(SourceFeedData sourceFeedData, Digest digest) {
 		sourceFeedService.createSourceFeed(digest, sourceFeedData.source(), 
-				sourceFeedData.contentUpdateInterval(), false);
+				sourceFeedData.contentUpdateInterval(), sourceFeedData.maxEntries(), false);
 	}
 	
 	

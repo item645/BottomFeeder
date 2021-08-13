@@ -48,7 +48,8 @@ export class SourceFeedComponent implements OnInit {
 		let controls = {
 			digestId: [this.digestId, Validators.required],
 			source: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(400)]],
-			contentUpdateInterval: [60, [Validators.required, Validators.min(10), Validators.max(1440)]]
+			contentUpdateInterval: [60, [Validators.required, Validators.min(10), Validators.max(1440)]],
+			maxEntries: [0, [Validators.required, Validators.min(0), Validators.max(2147483647)]]
 		}
 		this.form = this.formBuilder.group(controls);
 
@@ -72,6 +73,7 @@ export class SourceFeedComponent implements OnInit {
 		this.f.digestId.setValue(this.digestId);
 		this.f.source.setValue(sourceFeed.source);
 		this.f.contentUpdateInterval.setValue(sourceFeed.contentUpdateInterval);
+		this.f.maxEntries.setValue(sourceFeed.maxEntries);
 	}
 
 	private loadDigestTitles() {

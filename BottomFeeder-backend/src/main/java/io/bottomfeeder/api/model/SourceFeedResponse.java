@@ -15,7 +15,8 @@ public record SourceFeedResponse(
 		String title,
 		Instant creationDate,
 		Instant contentUpdateDate,
-		int contentUpdateInterval)
+		int contentUpdateInterval,
+		int maxEntries)
 
 implements EntityModel<SourceFeed> {
 	
@@ -27,7 +28,8 @@ implements EntityModel<SourceFeed> {
 			sourceFeed.getTitle(),
 			sourceFeed.getCreationDate(),
 			sourceFeed.getContentUpdateDate(),
-			sourceFeed.getContentUpdateInterval()
+			sourceFeed.getContentUpdateInterval(),
+			sourceFeed.getMaxEntries()
 			);
 	}
 

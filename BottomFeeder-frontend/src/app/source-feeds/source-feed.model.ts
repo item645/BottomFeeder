@@ -7,6 +7,7 @@ export class SourceFeed {
 		public creationDate: Date,
 		public contentUpdateDate: Date,
 		public contentUpdateInterval: number,
+		public maxEntries: number,
 		public updateContent: boolean
 	) { }
 }
@@ -16,6 +17,7 @@ export class NewSourceFeed {
 		public digestId: number,
 		public source: string,
 		public contentUpdateInterval: number,
+		public maxEntries: number,
 		public updateContent: boolean
 	) { }
 }

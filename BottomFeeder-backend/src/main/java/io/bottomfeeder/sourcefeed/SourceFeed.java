@@ -36,16 +36,22 @@ public class SourceFeed {
 	
 	public static final int CONTENT_UPDATE_INTERVAL_MIN = 10;
 	public static final int CONTENT_UPDATE_INTERVAL_MAX = 1440;
-	public static final int CONTENT_UPDATE_INTERVAL_DEFAULT = 60;
+	private static final int CONTENT_UPDATE_INTERVAL_DEFAULT = 60;
+	
+	public static final int MAX_ENTRIES_MIN = 0;
+	public static final int MAX_ENTRIES_MAX = Integer.MAX_VALUE;
+	private static final int MAX_ENTRIES_DEFAULT = MAX_ENTRIES_MIN;
 	
 	public static final String VALIDATION_SOURCE_NULL = "{validation.source-feed.source.null}";
 	public static final String VALIDATION_SOURCE_SIZE = "{validation.source-feed.source.size}";
-	public static final String VALIDATION_SOURCE_URL = "{validation.source-feed.source.url}";
+	private static final String VALIDATION_SOURCE_URL = "{validation.source-feed.source.url}";
 	public static final String VALIDATION_TITLE_SIZE = "{validation.source-feed.title.size}";
-	public static final String VALIDATION_CREATION_DATE_NULL = "{validation.source-feed.creation-date.null}";
+	private static final String VALIDATION_CREATION_DATE_NULL = "{validation.source-feed.creation-date.null}";
 	public static final String VALIDATION_CONTENT_UPDATE_INTERVAL_MIN = "{validation.source-feed.content-update-interval.min}";
 	public static final String VALIDATION_CONTENT_UPDATE_INTERVAL_MAX = "{validation.source-feed.content-update-interval.max}";
-	public static final String VALIDATION_DIGEST_NULL = "{validation.source-feed.digest.null}";
+	public static final String VALIDATION_MAX_ENTRIES_MIN = "{validation.source-feed.max-entries.min}";
+	public static final String VALIDATION_MAX_ENTRIES_MAX = "{validation.source-feed.max-entries.max}";
+	private static final String VALIDATION_DIGEST_NULL = "{validation.source-feed.digest.null}";
 	
 	
 	@Id
@@ -72,7 +78,12 @@ public class SourceFeed {
 	@Min(message = VALIDATION_CONTENT_UPDATE_INTERVAL_MIN, value = CONTENT_UPDATE_INTERVAL_MIN)
 	@Max(message = VALIDATION_CONTENT_UPDATE_INTERVAL_MAX, value = CONTENT_UPDATE_INTERVAL_MAX)
 	@Column(name = "content_update_interval")
-	private int contentUpdateInterval;
+	private int contentUpdateInterval = CONTENT_UPDATE_INTERVAL_DEFAULT;
+	
+	@Min(message = VALIDATION_MAX_ENTRIES_MIN, value = MAX_ENTRIES_MIN)
+	@Max(message = VALIDATION_MAX_ENTRIES_MAX, value = MAX_ENTRIES_MAX)
+	@Column(name = "max_entries", nullable = false)
+	private int maxEntries = MAX_ENTRIES_DEFAULT;
 	
 	@NotNull(message = VALIDATION_DIGEST_NULL)
 	@ManyToOne(optional = false)
@@ -81,9 +92,10 @@ public class SourceFeed {
 
 	public SourceFeed() {}
 
-	public SourceFeed(String source, int contentUpdateInterval, Digest digest) {
+	public SourceFeed(String source, int contentUpdateInterval, int maxEntries, Digest digest) {
 		this.source = source;
 		this.contentUpdateInterval = contentUpdateInterval;
+		this.maxEntries = maxEntries;
 		this.digest = digest;
 	}
 
@@ -134,6 +146,14 @@ public class SourceFeed {
 
 	public void setContentUpdateInterval(int contentUpdateInterval) {
 		this.contentUpdateInterval = contentUpdateInterval;
+	}
+
+	public int getMaxEntries() {
+		return maxEntries;
+	}
+
+	public void setMaxEntries(int maxEntries) {
+		this.maxEntries = maxEntries;
 	}
 
 	public Digest getDigest() {

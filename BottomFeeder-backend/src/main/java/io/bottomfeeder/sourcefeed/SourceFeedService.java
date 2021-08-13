@@ -52,20 +52,20 @@ public class SourceFeedService {
 	
 	
 	@Transactional
-	public SourceFeed createSourceFeed(Digest digest, String source, 
-			int contentUpdateInterval, boolean updateContent) {
+	public SourceFeed createSourceFeed(Digest digest, String source, int contentUpdateInterval, 
+			int maxEntries, boolean updateContent) {
 		source = normalizeSource(source);
 		if (sourceFeedRepository.existsBySourceAndDigest(source, digest))
 			throw duplicateSourceFeedError(source, digest);
 		
-		var sourceFeed = new SourceFeed(source, contentUpdateInterval, digest);
+		var sourceFeed = new SourceFeed(source, contentUpdateInterval, maxEntries, digest);
 		return updateContent ? updateContentAndSave(sourceFeed) : sourceFeedRepository.save(sourceFeed);
 	}
 	
 	
 	@Transactional
-	public SourceFeed updateSourceFeed(long id, long newDigestId, String newSource, 
-			int newContentUpdateInterval, boolean updateContent) {
+	public SourceFeed updateSourceFeed(long id, long newDigestId, String newSource, int newContentUpdateInterval,
+			int newMaxEntries, boolean updateContent) {
 		var sourceFeed = getSourceFeed(sourceFeedRepository::findAndLockById, id);
 		
 		var currentDigest = sourceFeed.getDigest();
@@ -91,6 +91,7 @@ public class SourceFeedService {
 		
 		sourceFeed.setDigest(newDigest);
 		sourceFeed.setContentUpdateInterval(newContentUpdateInterval);
+		sourceFeed.setMaxEntries(newMaxEntries);
 		
 		return updateContent ? updateContentAndSave(sourceFeed) : sourceFeedRepository.save(sourceFeed);
 	}

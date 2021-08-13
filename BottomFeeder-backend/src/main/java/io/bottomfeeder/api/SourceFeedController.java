@@ -68,8 +68,11 @@ class SourceFeedController {
 	@PostMapping
 	public Response<SourceFeedResponse> createSourceFeed(@Valid @RequestBody SourceFeedRequest sourceFeedRequest) {
 		var digest = digestService.getDigest(sourceFeedRequest.digestId());
+		
 		var sourceFeed = sourceFeedService.createSourceFeed(digest, sourceFeedRequest.source(), 
-				sourceFeedRequest.contentUpdateInterval(), sourceFeedRequest.updateContent());
+				sourceFeedRequest.contentUpdateInterval(), sourceFeedRequest.maxEntries(),
+				sourceFeedRequest.updateContent());
+		
 		var message = String.format("Source feed with source '%s' for digest '%s' created successfully", 
 				sourceFeed.getTruncatedSource(), digest.getTitle());
 		return new Response<>(message, new SourceFeedResponse(sourceFeed));
@@ -81,7 +84,9 @@ class SourceFeedController {
 	public Response<SourceFeedResponse> updateSourceFeed(@Valid @RequestBody SourceFeedRequest sourceFeedRequest) {
 		var updatedSourceFeed = sourceFeedService.updateSourceFeed(sourceFeedRequest.id(), 
 				sourceFeedRequest.digestId(), sourceFeedRequest.source(), 
-				sourceFeedRequest.contentUpdateInterval(), sourceFeedRequest.updateContent());
+				sourceFeedRequest.contentUpdateInterval(), sourceFeedRequest.maxEntries(), 
+				sourceFeedRequest.updateContent());
+		
 		var message = String.format("Source feed '%s' updated successfully", updatedSourceFeed.getTruncatedSource());
 		return new Response<>(message, new SourceFeedResponse(updatedSourceFeed));
 	}

@@ -20,9 +20,13 @@ record SourceFeedData(
 		
 		@Min(message = VALIDATION_CONTENT_UPDATE_INTERVAL_MIN, value = CONTENT_UPDATE_INTERVAL_MIN)
 		@Max(message = VALIDATION_CONTENT_UPDATE_INTERVAL_MAX, value = CONTENT_UPDATE_INTERVAL_MAX)
-		int contentUpdateInterval) {
+		int contentUpdateInterval,
+		
+		@Min(message = VALIDATION_MAX_ENTRIES_MIN, value = MAX_ENTRIES_MIN)
+		@Max(message = VALIDATION_MAX_ENTRIES_MAX, value = MAX_ENTRIES_MAX)
+		int maxEntries) {
 	
 	SourceFeedData(SourceFeed sourceFeed) {
-		this(sourceFeed.getSource(), sourceFeed.getContentUpdateInterval());
+		this(sourceFeed.getSource(), sourceFeed.getContentUpdateInterval(), sourceFeed.getMaxEntries());
 	}
 }

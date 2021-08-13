@@ -1,6 +1,7 @@
 package io.bottomfeeder.sourcefeed.entry;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,8 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -53,7 +52,7 @@ public class SourceFeedEntryService {
 		return sourceFeedEntryRepository.findDigestFeedEntries(digest).stream()
 				.map(sourceFeedEntry -> readSourceFeedEntryContent(sourceFeedEntry, targetFormat))
 				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 	
 	
@@ -64,11 +63,16 @@ public class SourceFeedEntryService {
 		
 		deleteSourceFeedEntries(sourceFeed);
 		
+		var maxEntries = sourceFeed.getMaxEntries();
+		var syndEntryStream = newFeedData.getEntries().stream();
+		if (maxEntries > 0)
+			syndEntryStream = syndEntryStream.limit(maxEntries);
+		
 		var feedType = newFeedData.getFeedType();
-		var sourceFeedEntries = newFeedData.getEntries().stream()
+		var sourceFeedEntries = syndEntryStream
 				.map(syndEntry -> createSourceFeedEntry(syndEntry, feedType, sourceFeed))
 				.filter(Objects::nonNull) // filter out entries without published and updated date
-				.collect(Collectors.toList());
+				.collect(toList());
 		
 		sourceFeedEntryRepository.saveAll(sourceFeedEntries);
 	}
@@ -119,10 +123,9 @@ public class SourceFeedEntryService {
 	
 	
 	private SourceFeedEntry createSourceFeedEntry(SyndEntry syndEntry, String feedType, SourceFeed sourceFeed) {
-		var entryFeed = createEntryFeed(syndEntry, feedType);
-		
 		var date = getEntryDate(syndEntry);
 		if (date != null) {
+			var entryFeed = createEntryFeed(syndEntry, feedType);
 			return new SourceFeedEntry(date, getContentBytes(entryFeed), sourceFeed);
 		}
 		else {

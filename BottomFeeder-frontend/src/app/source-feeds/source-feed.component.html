@@ -85,6 +85,23 @@
 				</small>
 			</div>
 		</div>
+		<div class="form-group row">
+			<label for="maxEntries" class="col-sm-2 font-weight-bold">Max Entries</label>
+			<div class="col-sm-10">
+				<input type="number" formControlName="maxEntries" class="form-control form-control-sm"
+					[ngClass]="{ 'is-invalid': submitted && f.maxEntries.errors }" />
+				<div *ngIf="submitted && f.maxEntries.errors" class="invalid-feedback">
+					<div *ngIf="f.maxEntries.errors.required">Max Entries is required</div>
+					<div *ngIf="f.maxEntries.errors.min">Max Entries value must be not be negative</div>
+					<div *ngIf="f.maxEntries.errors.max">Max Entries value must be no more than 2147483647</div>
+				</div>
+				<small class="form-text text-muted">
+					Limits the number of latest (topmost) entries in this feed's content that will be fetched from the source and stored.
+					The value of 0 means that there is no limit and we will fetch and store as many entries as source provides.
+					Note that the meaning of <em>latest</em> depends on how source feed's content was sorted in the first place.
+				</small>
+			</div>
+		</div>
 		<div class="form-row">
 			<div class="btn-toolbar">
 				<button [disabled]="isSaving()" class="btn btn-primary mr-1"
