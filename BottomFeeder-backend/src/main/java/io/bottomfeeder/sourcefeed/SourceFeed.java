@@ -77,7 +77,7 @@ public class SourceFeed {
 	
 	@Min(message = VALIDATION_CONTENT_UPDATE_INTERVAL_MIN, value = CONTENT_UPDATE_INTERVAL_MIN)
 	@Max(message = VALIDATION_CONTENT_UPDATE_INTERVAL_MAX, value = CONTENT_UPDATE_INTERVAL_MAX)
-	@Column(name = "content_update_interval")
+	@Column(name = "content_update_interval", nullable = false)
 	private int contentUpdateInterval = CONTENT_UPDATE_INTERVAL_DEFAULT;
 	
 	@Min(message = VALIDATION_MAX_ENTRIES_MIN, value = MAX_ENTRIES_MIN)

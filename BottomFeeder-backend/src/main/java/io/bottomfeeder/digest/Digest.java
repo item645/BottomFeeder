@@ -70,10 +70,10 @@ public class Digest {
 	
 	@Min(message = VALIDATION_MAX_ENTRIES_MIN, value = MAX_ENTRIES_MIN)
 	@Max(message = VALIDATION_MAX_ENTRIES_MAX, value = MAX_ENTRIES_MAX)
-	@Column(name = "max_entries")
+	@Column(name = "max_entries", nullable = false)
 	private int maxEntries = MAX_ENTRIES_DEFAULT;
 	
-	@Column(name = "is_private")
+	@Column(name = "is_private", nullable = false)
 	private boolean isPrivate;
 
 	@NotNull(message = VALIDATION_OWNER_NULL)
