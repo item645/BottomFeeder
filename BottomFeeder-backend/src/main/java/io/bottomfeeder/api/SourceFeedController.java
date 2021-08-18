@@ -2,6 +2,8 @@ package io.bottomfeeder.api;
 
 import static io.bottomfeeder.config.Constants.API_URL_SOURCE_FEEDS;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,7 @@ import io.bottomfeeder.api.model.Response;
 import io.bottomfeeder.api.model.SourceFeedRequest;
 import io.bottomfeeder.api.model.SourceFeedResponse;
 import io.bottomfeeder.data.DataExportService;
+import io.bottomfeeder.data.DataImportService;
 import io.bottomfeeder.digest.DigestService;
 import io.bottomfeeder.security.permission.PermissionExpressions;
 import io.bottomfeeder.sourcefeed.SourceFeedService;
@@ -35,14 +38,17 @@ class SourceFeedController {
 
 	private final SourceFeedService sourceFeedService;
 	private final DigestService digestService;
+	private final DataImportService dataImportService;
 	private final DataExportService dataExportService;
 	
 	public SourceFeedController(
 			SourceFeedService sourceFeedService, 
 			DigestService digestService, 
+			DataImportService dataImportService, 
 			DataExportService dataExportService) {
 		this.sourceFeedService = sourceFeedService;
 		this.digestService = digestService;
+		this.dataImportService = dataImportService;
 		this.dataExportService = dataExportService;
 	}
 	
@@ -97,6 +103,17 @@ class SourceFeedController {
 	public Response<Void> deleteSourceFeed(@PathVariable long id) {
 		sourceFeedService.deleteSourceFeed(id);
 		return new Response<>("Source feed deleted successfully");
+	}
+	
+	
+	@PreAuthorize(PermissionExpressions.IMPORT_SOURCE_FEED_FOR_DIGEST)
+	@PostMapping("/digest/{id}/import")
+	public Response<Void> importDigestSourceFeeds(@PathVariable long id, InputStream sourceFeedsData) 
+			throws IOException {
+		var digest = digestService.getDigest(id);
+		dataImportService.importSourceFeeds(sourceFeedsData.readAllBytes(), digest);
+		
+		return new Response<>(String.format("Source feeds for digest '%s' imported successfully", digest.getTitle()));
 	}
 	
 	

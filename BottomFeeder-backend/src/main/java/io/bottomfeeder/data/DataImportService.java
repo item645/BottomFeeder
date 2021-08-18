@@ -6,8 +6,9 @@ import static io.bottomfeeder.user.User.VALIDATION_PASSWORD_SIZE;
 import static io.bottomfeeder.user.User.VALIDATION_PASSWORD_HASH_REGEX;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import javax.validation.ConstraintViolationException;
@@ -42,12 +43,14 @@ import io.bottomfeeder.user.UserService;
  * format into application.
  */
 @Service
+@Transactional
 public class DataImportService {
 
 	private static final Pattern BCRYPT_HASH_PATTERN = Pattern.compile(PASSWORD_HASH_REGEX);
 	
-	private static final TypeReference<Data<UserData>> USERDATA_TYPE_REFERENCE = 
-			new TypeReference<Data<UserData>>(){};
+	private static final TypeReference<Data<UserData>> USERS_DATA_TYPE_REF = new TypeReference<>(){};
+	private static final TypeReference<Data<DigestData>> DIGESTS_DATA_TYPE_REF = new TypeReference<>(){};
+	private static final TypeReference<Data<SourceFeedData>> SOURCE_FEEDS_DATA_TYPE_REF = new TypeReference<>(){};
 	
 	private final UserService userService;
 	private final DigestService digestService;
@@ -98,16 +101,36 @@ public class DataImportService {
 	}
 	
 	
-	@Transactional
-	public void importUsersData(String usersDataJson) {
-		// TODO better error reporting, should clearly indicate the deserialized object where error occured
+	// TODO better error reporting, should clearly indicate the deserialized object where error occured
+	
+	public void importInitialData(byte[] initialDataJson) {
+		assert !userService.hasUsers() : "Database already contains data";
+			
+		importData(initialDataJson, USERS_DATA_TYPE_REF, 
+				compose(this::ensureContainsAdminAccount, this::importUsersData));
+	}
+	
+	
+	public void importUsers(byte[] usersDataJson) {
+		importData(usersDataJson, USERS_DATA_TYPE_REF, this::importUsersData);
+	}
+	
+	
+	public void importDigests(byte[] digestsDataJson, User owner) {
+		Objects.requireNonNull(owner.getId());
+		importData(digestsDataJson, DIGESTS_DATA_TYPE_REF, data -> importDigestsData(data, owner));
+	}
+	
+	
+	public void importSourceFeeds(byte[] sourceFeedsDataJson, Digest digest) {
+		Objects.requireNonNull(digest.getId());
+		importData(sourceFeedsDataJson, SOURCE_FEEDS_DATA_TYPE_REF, data -> importSourceFeedsData(data, digest));
+	}
+	
+	
+	private <T> void importData(byte[] dataJson, TypeReference<Data<T>> typeRef, Consumer<Data<T>> dataConsumer) {
 		try {
-			var importedData = objectMapper.readValue(usersDataJson, USERDATA_TYPE_REFERENCE);
-			
-			if (!userService.hasUsers())
-				ensureContainsAdminAccount(importedData.items());
-			
-			importedData.items().forEach(this::saveUserData);
+			dataConsumer.accept(objectMapper.readValue(dataJson, typeRef));
 		}
 		catch (DataImportException e) {
 			throw e;
@@ -118,8 +141,23 @@ public class DataImportService {
 	}
 
 	
-	private static void ensureContainsAdminAccount(Collection<UserData> users) {
-		if (!users.stream().anyMatch(userData -> userData.role() == Role.ADMIN))
+	private void importUsersData(Data<UserData> data) {
+		data.items().forEach(this::saveUserData);
+	}
+	
+	
+	private void importDigestsData(Data<DigestData> data, User owner) {
+		data.items().forEach(digestData -> saveDigestData(digestData, owner));
+	}
+	
+	
+	private void importSourceFeedsData(Data<SourceFeedData> data, Digest digest) {
+		data.items().forEach(sourceFeedData -> saveSourceFeedData(sourceFeedData, digest));
+	}
+	
+	
+	private void ensureContainsAdminAccount(Data<UserData> usersData) {
+		if (!usersData.items().stream().anyMatch(userData -> userData.role() == Role.ADMIN))
 			throw new DataImportException("Users data must contain at least one user with ADMIN role");
 	}
 	
@@ -173,6 +211,11 @@ public class DataImportService {
 		if (message.startsWith("{") && message.endsWith("}"))
 			return StringUtils.removeStart(StringUtils.removeEnd(message, "}"), "{");
 		return message;
+	}
+
+	
+	private static <T> Consumer<T> compose(Consumer<T> first, Consumer<T> second) {
+		return first.andThen(second);
 	}
 	
 	

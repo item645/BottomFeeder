@@ -51,7 +51,7 @@ class InitialDataLoader implements ApplicationRunner {
 		var enableImport = environment.getProperty("bf.data.enable-initial-data-import", Boolean.class, Boolean.FALSE);
 		if (enableImport) {
 			if (!userService.hasUsers()) {
-				dataImportService.importUsersData(loadInitialDataJson());
+				dataImportService.importInitialData(loadInitialDataJson());
 				logger.info("Successfully imported initial data");
 			}
 			else {
@@ -61,7 +61,7 @@ class InitialDataLoader implements ApplicationRunner {
 	}
 
 	
-	private String loadInitialDataJson() throws IOException, URISyntaxException {
+	private byte[] loadInitialDataJson() throws IOException, URISyntaxException {
 		var initialDataPath = StringUtils.trimToEmpty(environment.getProperty("bf.data.initial-data-json"));
 		if (StringUtils.isNotBlank(initialDataPath))
 			return loadInitialDataFromPath(initialDataPath);
@@ -70,16 +70,16 @@ class InitialDataLoader implements ApplicationRunner {
 	}
 	
 	
-	private static String loadInitialDataFromPath(String path) throws IOException {
+	private static byte[] loadInitialDataFromPath(String path) throws IOException {
 		logger.info(String.format("Importing initial data from path: %s", path));
-		return Files.readString(Paths.get(path));
+		return Files.readAllBytes(Paths.get(path));
 	}
 	
 	
-	private static String loadDefaultInitialData() throws IOException, URISyntaxException {
+	private static byte[] loadDefaultInitialData() throws IOException, URISyntaxException {
 		logger.info("Importing default initial data");
 		var resourceUri = InitialDataLoader.class.getResource("/initial_data.json").toURI();
-		return Files.readString(Paths.get(resourceUri));
+		return Files.readAllBytes(Paths.get(resourceUri));
 	}
 	
 }

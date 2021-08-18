@@ -30,6 +30,9 @@ public final class PermissionExpressions {
 	public static final String CREATE_SOURCE_FEED_FOR_DIGEST = 
 			"hasPermission(#sourceFeedRequest.digestId, '" + DIGEST_CLASS + "', T(" + PERMISSION_CLASS + ").UPDATE)";
 
+	public static final String IMPORT_SOURCE_FEED_FOR_DIGEST = 
+			"hasPermission(#id, '" + DIGEST_CLASS + "', T(" + PERMISSION_CLASS + ").UPDATE)";
+	
 	public static final String UPDATE_SOURCE_FEED = 
 			"hasPermission(#sourceFeedRequest, T(" + PERMISSION_CLASS + ").UPDATE) and " + 
 			"hasPermission(#sourceFeedRequest.digestId, '" + DIGEST_CLASS + "', T(" + PERMISSION_CLASS + ").UPDATE)";

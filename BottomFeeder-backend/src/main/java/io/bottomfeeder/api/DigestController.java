@@ -2,6 +2,8 @@ package io.bottomfeeder.api;
 
 import static io.bottomfeeder.config.Constants.API_URL_DIGESTS;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ import io.bottomfeeder.api.model.DigestResponse;
 import io.bottomfeeder.api.model.DigestTitleResponse;
 import io.bottomfeeder.api.model.Response;
 import io.bottomfeeder.data.DataExportService;
+import io.bottomfeeder.data.DataImportService;
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.digest.DigestService;
 import io.bottomfeeder.digest.feed.DigestFeedFormat;
@@ -41,15 +44,18 @@ class DigestController {
 
 	private final DigestService digestService;
 	private final UserService userService;
+	private final DataImportService dataImportService;
 	private final DataExportService dataExportService;
 
 	
 	public DigestController(
 			DigestService digestService, 
 			UserService userService, 
+			DataImportService dataImportService, 
 			DataExportService dataExportService) {
 		this.digestService = digestService;
 		this.userService = userService;
+		this.dataImportService = dataImportService;
 		this.dataExportService = dataExportService;
 	}
 	
@@ -121,6 +127,13 @@ class DigestController {
 	public Response<Void> deleteDigest(@PathVariable long id) {
 		digestService.deleteDigest(id);
 		return new Response<>("Digest deleted successfully");
+	}
+	
+	
+	@PostMapping("/own/import")
+	public Response<Void> importOwnDigests(InputStream digestsData) throws IOException {
+		dataImportService.importDigests(digestsData.readAllBytes(), userService.getAuthenticatedUser());
+		return new Response<>("Digests imported successfully");
 	}
 	
 	

@@ -2,6 +2,8 @@ package io.bottomfeeder.api;
 
 import static io.bottomfeeder.config.Constants.API_URL_USERS;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,7 @@ import io.bottomfeeder.api.model.Response;
 import io.bottomfeeder.api.model.UserRequest;
 import io.bottomfeeder.api.model.UserResponse;
 import io.bottomfeeder.data.DataExportService;
+import io.bottomfeeder.data.DataImportService;
 import io.bottomfeeder.security.Role;
 import io.bottomfeeder.user.UserService;
 
@@ -35,11 +38,15 @@ import io.bottomfeeder.user.UserService;
 class UserController {
 
 	private final UserService userService;
+	private final DataImportService dataImportService;
 	private final DataExportService dataExportService;
 
 	
-	public UserController(UserService userService, DataExportService dataExportService) {
+	public UserController(UserService userService,
+			DataImportService dataImportService, 
+			DataExportService dataExportService) {
 		this.userService = userService;
+		this.dataImportService = dataImportService;
 		this.dataExportService = dataExportService;
 	}
 
@@ -76,6 +83,13 @@ class UserController {
 	public Response<Void> deleteUser(@PathVariable long id) {
 		userService.deleteUser(id);
 		return new Response<>("User deleted successfully");
+	}
+	
+	
+	@PostMapping("/import")
+	public Response<Void> importUsers(InputStream usersData) throws IOException {
+		dataImportService.importUsers(usersData.readAllBytes());
+		return new Response<>("Users imported successfully");
 	}
 	
 	

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.bottomfeeder.api.model.ErrorResponse;
 import io.bottomfeeder.api.model.Response;
 import io.bottomfeeder.base.EntityException;
+import io.bottomfeeder.data.DataImportException;
 
 /**
  * Provides centralized exception handling for all REST API controllers.
@@ -86,6 +87,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<Object> handleEntityError(EntityException exception) {
 		logger.debug("Entity error", exception);
 		return createResponse(HttpStatus.BAD_REQUEST, EMPTY_HEADERS, exception.getMessage());
+	}
+	
+	
+	@ExceptionHandler(DataImportException.class)
+	public ResponseEntity<Object> handleDataImportError(DataImportException exception) {
+		var cause = exception.getCause();
+		if (cause instanceof EntityException entityException)
+			return handleEntityError(entityException);
+		else
+			return handleError(exception);
 	}
 	
 	
