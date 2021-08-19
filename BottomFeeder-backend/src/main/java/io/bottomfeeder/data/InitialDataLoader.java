@@ -23,8 +23,8 @@ import io.bottomfeeder.user.UserService;
  * {@code bf.data.enable-initial-data-import} property) and application has no data yet.
  * 
  * When initial data file path is specified through {@code bf.data.initial-data-json} property, 
- * the data will be loaded from that location, otherwise default data will be taken from 
- * {@code initial_data.json} file stored in app's resources.   
+ * the data will be loaded from that location, otherwise sample data will be loaded from 
+ * {@code initial_data_sample.json} file stored in app's resources.   
  */
 @Component
 class InitialDataLoader implements ApplicationRunner {
@@ -66,7 +66,7 @@ class InitialDataLoader implements ApplicationRunner {
 		if (StringUtils.isNotBlank(initialDataPath))
 			return loadInitialDataFromPath(initialDataPath);
 		else
-			return loadDefaultInitialData();
+			return loadInitialDataSample();
 	}
 	
 	
@@ -76,9 +76,9 @@ class InitialDataLoader implements ApplicationRunner {
 	}
 	
 	
-	private static byte[] loadDefaultInitialData() throws IOException, URISyntaxException {
-		logger.info("Importing default initial data");
-		var resourceUri = InitialDataLoader.class.getResource("/initial_data.json").toURI();
+	private static byte[] loadInitialDataSample() throws IOException, URISyntaxException {
+		logger.info("Importing initial data sample");
+		var resourceUri = InitialDataLoader.class.getResource("/initial_data_sample.json").toURI();
 		return Files.readAllBytes(Paths.get(resourceUri));
 	}
 	
