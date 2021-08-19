@@ -136,7 +136,7 @@ public class DataImportService {
 			throw e;
 		}
 		catch (Exception e) {
-			throw new DataImportException("Error importing data", e);
+			throw new DataImportException("The data is probably not valid", e);
 		}
 	}
 

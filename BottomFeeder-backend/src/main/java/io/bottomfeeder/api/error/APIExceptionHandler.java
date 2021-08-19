@@ -92,11 +92,13 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 	
 	@ExceptionHandler(DataImportException.class)
 	public ResponseEntity<Object> handleDataImportError(DataImportException exception) {
+		var description = "Data import error";
+		logger.debug(description, exception);
 		var cause = exception.getCause();
 		if (cause instanceof EntityException entityException)
 			return handleEntityError(entityException);
 		else
-			return handleError(exception);
+			return createResponse(HttpStatus.BAD_REQUEST, EMPTY_HEADERS, description, exception);
 	}
 	
 	
