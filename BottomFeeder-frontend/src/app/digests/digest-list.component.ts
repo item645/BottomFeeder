@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PrincipalService } from '../core/auth/principal.service';
 import { Digest } from './digest.model';
 import { DigestService } from './digest.service';
+import { fileDialog } from 'file-select-dialog'
 import { saveAs } from "file-saver";
 
 @Component({
@@ -40,17 +41,29 @@ export class DigestListComponent implements OnInit {
 
 		this.listTitle = this.isOwnDigests ? 'My Digests' : 'All Digests';
 
-		let digestsObservable = this.isOwnDigests ? this.digestService.getOwnDigests() : this.digestService.getAllDigests();
-		digestsObservable.subscribe(digests => this.digests = digests);
+		this.loadDigests();
 	}
-
 
 	deleteDigest(id: number) {
 		this.digestService.deleteDigest(id).subscribe(() => this.digests = this.digests.filter(digest => digest.id !== id));
+	}
+
+	importDigests() {
+		fileDialog({accept: '.json', strict: true}).then(file => {
+			this.digestService
+				.importOwnDigests(file)
+				.subscribe(() => this.loadDigests());
+		});
 	}
 
 	exportDigests() {
 		let currentLogin = this.principal.getAccount().login;
 		this.digestService.exportOwnDigests().subscribe(digestsData => saveAs(digestsData, `${currentLogin}_digests.json`));
 	}
+
+	private loadDigests() {
+		let digestsObservable = this.isOwnDigests ? this.digestService.getOwnDigests() : this.digestService.getAllDigests();
+		digestsObservable.subscribe(digests => this.digests = digests);
+	}
+	
 }

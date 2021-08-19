@@ -1,5 +1,5 @@
-<a routerLink="../../feeds/add" [state]="{digestId: digest.id}" 
-	class="btn btn-sm btn-success mb-2 mr-1">Add Source Feed</a>
+<a routerLink="../../feeds/add" [state]="{digestId: digest.id}" class="btn btn-sm btn-success mb-2 mr-1">Add Source Feed</a>
+<button (click)="importSourceFeeds()" class="btn btn-sm btn-secondary mb-2 mr-1">Import Source Feeds</button>
 <button (click)="exportSourceFeeds()" class="btn btn-sm btn-secondary mb-2 mr-1">Export Source Feeds</button>
 <table class="table table-striped">
 	<thead>

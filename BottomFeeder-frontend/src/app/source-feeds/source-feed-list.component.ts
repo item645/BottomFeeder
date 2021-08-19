@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Digest } from '../digests/digest.model';
 import { SourceFeed } from './source-feed.model';
 import { SourceFeedService } from './source-feed.service';
+import { fileDialog } from 'file-select-dialog'
 import { saveAs } from "file-saver";
 
 @Component({
@@ -19,9 +20,7 @@ export class SourceFeedListComponent implements OnInit {
 	constructor(private sourceFeedService: SourceFeedService) { }
 
 	ngOnInit() {
-		this.sourceFeedService
-			.getDigestSourceFeeds(this.digest.id)
-			.subscribe(sourceFeeds => this.sourceFeeds = sourceFeeds);
+		this.loadSourceFeeds();
 	}
 
 	deleteSourceFeed(id: number) {
@@ -30,9 +29,23 @@ export class SourceFeedListComponent implements OnInit {
 			.subscribe(() => this.sourceFeeds = this.sourceFeeds.filter(feed => feed.id !== id));
 	}
 
+	importSourceFeeds() {
+		fileDialog({accept: '.json', strict: true}).then(file => {
+			this.sourceFeedService
+				.importSourceFeeds(this.digest.id, file)
+				.subscribe(() => this.loadSourceFeeds());
+		});
+	}
+
 	exportSourceFeeds() {
 		this.sourceFeedService
 			.exportSourceFeeds(this.digest.id)
 			.subscribe(sourceFeedsData => saveAs(sourceFeedsData, `digest_${this.digest.id}_source_feeds.json`));
+	}
+
+	private loadSourceFeeds() {
+		this.sourceFeedService
+			.getDigestSourceFeeds(this.digest.id)
+			.subscribe(sourceFeeds => this.sourceFeeds = sourceFeeds);
 	}
 }

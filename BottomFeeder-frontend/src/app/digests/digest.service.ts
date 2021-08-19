@@ -42,7 +42,11 @@ export class DigestService {
 	deleteDigest(id: number) {
 		return this.http.delete<void>(`${this.baseURL}/${id}`);
 	}
-	
+
+	importOwnDigests(digestsData: Blob) {
+		return this.http.post<void>(`${this.baseURL}/own/import`, digestsData);
+	}
+
 	exportOwnDigests() {
 		return this.http.get(`${this.baseURL}/own/export`, { responseType: 'blob' });
 	}

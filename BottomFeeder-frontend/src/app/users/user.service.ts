@@ -31,6 +31,10 @@ export class UserService {
 		return this.http.delete<void>(`${this.baseURL}/${id}`);
 	}
 
+	importUsers(usersData: Blob) {
+		return this.http.post<void>(`${this.baseURL}/import`, usersData);
+	}
+
 	exportUsers() {
 		return this.http.get(`${this.baseURL}/export`, { responseType: 'blob' });
 	}

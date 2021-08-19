@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { PrincipalService } from '../core/auth/principal.service';
 import { User } from './user.model';
 import { UserService } from './user.service';
+import { fileDialog } from 'file-select-dialog'
 import { saveAs } from "file-saver";
 
 @Component({
@@ -15,11 +16,19 @@ export class UserListComponent implements OnInit {
 	constructor(private userService: UserService, private principal: PrincipalService) { }
 
 	ngOnInit() {
-		this.userService.getAllUsers().subscribe(users => this.users = users);
+		this.loadUsers();
 	}
 
 	deleteUser(id: number) {
 		this.userService.deleteUser(id).subscribe(() => this.users = this.users.filter(u => u.id !== id));
+	}
+
+	importUsers() {
+		fileDialog({accept: '.json', strict: true}).then(file => {
+			this.userService
+				.importUsers(file)
+				.subscribe(() => this.loadUsers());
+		});
 	}
 
 	exportUsers() {
@@ -30,4 +39,9 @@ export class UserListComponent implements OnInit {
 		let account = this.principal.getAccount();
 		return account && login === account.login;
 	}
+
+	private loadUsers() {
+		this.userService.getAllUsers().subscribe(users => this.users = users);
+	}
+
 }

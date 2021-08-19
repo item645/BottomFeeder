@@ -1,6 +1,7 @@
 <div class="col-md-10 offset-md-1">
 	<div class="text-center"><h2>{{listTitle}}</h2></div>
 	<a routerLink="../add" class="btn btn-sm btn-success mb-2 mr-1">Add Digest</a>
+	<button (click)="importDigests()" class="btn btn-sm btn-secondary mb-2 mr-1" *ngIf="isOwnDigests">Import Digests</button>
 	<button (click)="exportDigests()" class="btn btn-sm btn-secondary mb-2 mr-1" *ngIf="isOwnDigests">Export Digests</button>
 	<table class="table table-striped">
 		<thead>

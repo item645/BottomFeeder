@@ -32,6 +32,10 @@ export class SourceFeedService {
 		return this.http.delete<void>(`${this.baseURL}/${id}`);
 	}
 
+	importSourceFeeds(digestId: number, sourceFeedsData: Blob) {
+		return this.http.post<void>(`${this.baseURL}/digest/${digestId}/import`, sourceFeedsData);
+	}
+
 	exportSourceFeeds(digestId: number) {
 		return this.http.get(`${this.baseURL}/digest/${digestId}/export`, { responseType: 'blob' });
 	}
