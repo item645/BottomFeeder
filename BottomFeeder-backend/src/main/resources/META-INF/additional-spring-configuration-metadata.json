@@ -10,9 +10,14 @@
     "description": "Application name"
   },
   {
+    "name": "bf.scheduler.source-feed-update-enabled",
+    "type": "java.lang.Boolean",
+    "description": "Enables scheduled update of source feeds content"
+  },
+  {
     "name": "bf.scheduler.source-feed-update-interval-minutes",
-    "type": "java.lang.String",
-    "description": "An interval for running scheduled update of source feeds content, in minutes'"
+    "type": "java.lang.Integer",
+    "description": "An interval for running scheduled update of source feeds content, in minutes"
   },
   {
     "name": "bf.async.core-pool-size",
@@ -21,7 +26,7 @@
   },
   {
     "name": "bf.async.max-pool-size",
-    "type": "java.lang.String",
+    "type": "java.lang.Integer",
     "description": "Max pool size for app's async executor"
   },
   {

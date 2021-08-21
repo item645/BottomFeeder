@@ -11,6 +11,7 @@ import java.util.concurrent.FutureTask;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,7 @@ public class SourceFeedContentUpdateService {
 	private final SourceFeedEntryService sourceFeedEntryService;
 	private final ThreadPoolTaskExecutor taskExecutor;
 	private final TransactionalRunner transactionalRunner;
+	private final boolean scheduledUpdateEnabled;
 	
 	private final ConcurrentHashMap<Long, FutureTask<SyndFeed>> updaters = new ConcurrentHashMap<>();
 
@@ -48,21 +50,25 @@ public class SourceFeedContentUpdateService {
 			SourceFeedRepository sourceFeedRepository,
 			SourceFeedEntryService sourceFeedEntryService,
 			ThreadPoolTaskExecutor taskExecutor, 
-			TransactionalRunner transactionalRunner) {
+			TransactionalRunner transactionalRunner, 
+			@Value("${bf.scheduler.source-feed-update-enabled:true}") boolean scheduledUpdateEnabled) {
 		this.sourceFeedRepository = sourceFeedRepository;
 		this.sourceFeedEntryService = sourceFeedEntryService;
 		this.taskExecutor = taskExecutor;
 		this.transactionalRunner = transactionalRunner;
+		this.scheduledUpdateEnabled = scheduledUpdateEnabled;
 	}
 
 
-	@Scheduled(fixedDelayString = "#{${bf.scheduler.source-feed-update-interval-minutes} * 60000}")
+	@Scheduled(fixedDelayString = "#{${bf.scheduler.source-feed-update-interval-minutes:5} * 60000}")
 	public void runScheduledUpdate() {
-		logger.info("Starting scheduled update of source feeds...");
-		
-		sourceFeedRepository.findAll().stream()
-			.filter(this::isReadyForUpdate)
-			.forEach(this::runScheduledFeedUpdate);
+		if (scheduledUpdateEnabled) {
+			logger.info("Starting scheduled update of source feeds...");
+			
+			sourceFeedRepository.findAll().stream()
+				.filter(this::isReadyForUpdate)
+				.forEach(this::runScheduledFeedUpdate);
+		}
 	}
 
 	
@@ -186,10 +192,8 @@ public class SourceFeedContentUpdateService {
 
 	private boolean isReadyForUpdate(SourceFeed sourceFeed) {
 		var lastUpdateDate = sourceFeed.getContentUpdateDate();
-		if (lastUpdateDate == null)
-			return true;
-		else
-			return ChronoUnit.MINUTES.between(lastUpdateDate, Instant.now()) >= sourceFeed.getContentUpdateInterval();
+		return lastUpdateDate == null
+				|| ChronoUnit.MINUTES.between(lastUpdateDate, Instant.now()) >= sourceFeed.getContentUpdateInterval();
 	}
 
 	
