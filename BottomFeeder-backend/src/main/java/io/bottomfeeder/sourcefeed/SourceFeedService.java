@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.digest.DigestRepository;
+import io.bottomfeeder.filter.EntryFilterService;
 import io.bottomfeeder.sourcefeed.entry.SourceFeedEntryService;
 import io.bottomfeeder.sourcefeed.update.SourceFeedContentUpdateService;
 
@@ -26,6 +27,7 @@ public class SourceFeedService {
 	private final SourceFeedRepository sourceFeedRepository;
 	private final SourceFeedContentUpdateService sourceFeedContentUpdateService;
 	private final SourceFeedEntryService sourceFeedEntryService;
+	private final EntryFilterService entryFilterService;
 	private final DigestRepository digestRepository;
 
 	
@@ -33,10 +35,12 @@ public class SourceFeedService {
 			SourceFeedRepository sourceFeedRepository, 
 			SourceFeedContentUpdateService sourceFeedContentUpdateService,
 			SourceFeedEntryService sourceFeedEntryService,
+			EntryFilterService entryFilterService, 
 			DigestRepository digestRepository) {
 		this.sourceFeedRepository = sourceFeedRepository;
 		this.sourceFeedContentUpdateService = sourceFeedContentUpdateService;
 		this.sourceFeedEntryService = sourceFeedEntryService;
+		this.entryFilterService = entryFilterService;
 		this.digestRepository = digestRepository;
 	}
 	
@@ -169,6 +173,7 @@ public class SourceFeedService {
 	public void deleteSourceFeed(long id) {
 		sourceFeedContentUpdateService.cancelUpdate(id);
 		sourceFeedEntryService.deleteSourceFeedEntries(id);
+		entryFilterService.deleteSourceFeedEntryFilters(id);
 		sourceFeedRepository.deleteById(id);
 	}
 	

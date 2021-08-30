@@ -14,6 +14,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.feed.synd.SyndFeedImpl;
 
 import io.bottomfeeder.digest.feed.DigestFeedFormat;
+import io.bottomfeeder.filter.EntryFilterService;
 import io.bottomfeeder.sourcefeed.SourceFeedService;
 import io.bottomfeeder.sourcefeed.entry.SourceFeedEntryService;
 import io.bottomfeeder.user.User;
@@ -27,6 +28,7 @@ public class DigestService {
 	private final DigestRepository digestRepository;
 	private final SourceFeedService sourceFeedService;
 	private final SourceFeedEntryService sourceFeedEntryService;
+	private final EntryFilterService entryFilterService;
 	private final String applicationName;
 	private final String applicationUrl;
 	
@@ -35,11 +37,13 @@ public class DigestService {
 			DigestRepository digestRepository, 
 			SourceFeedService sourceFeedService,
 			SourceFeedEntryService sourceFeedEntryService,
+			EntryFilterService entryFilterService,
 			@Value("${bf.application.name}") String applicationName,
 			@Value("${bf.application.url}") String applicationUrl) {
 		this.digestRepository = digestRepository;
 		this.sourceFeedService = sourceFeedService;
 		this.sourceFeedEntryService = sourceFeedEntryService;
+		this.entryFilterService = entryFilterService;
 		this.applicationName = checkPropertyValue(applicationName, "Application name").trim();
 		this.applicationUrl = checkPropertyValue(applicationUrl, "Application URL").trim();
 	}
@@ -127,6 +131,7 @@ public class DigestService {
 	
 	private void deleteDigest(Digest digest) {
 		sourceFeedService.deleteDigestSourceFeeds(digest);
+		entryFilterService.deleteDigestEntryFilters(digest.getId());
 		digestRepository.delete(digest);
 	}
 	
