@@ -1,0 +1,102 @@
+package io.bottomfeeder.api.model;
+
+import static io.bottomfeeder.filter.EntryFilter.*;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonGetter;
+
+import io.bottomfeeder.filter.Condition;
+import io.bottomfeeder.filter.Connective;
+import io.bottomfeeder.filter.EntryFilter;
+import io.bottomfeeder.filter.EntryFilterModel;
+
+/**
+ * Base class for request/response entry filter model implementations.
+ * 
+ * @param <T> the type of entry filter entity
+ * @param <E> the type of entity that filter is associated with
+ */
+abstract class AbstractEntryFilterModel<T extends EntryFilter<E>, E> implements EntryFilterModel<T, E> {
+
+	private final Long id;
+	
+	@Min(message = VALIDATION_ORDINAL_MIN, value = ORDINAL_MIN)
+	private final int ordinal;
+	
+	@NotNull(message = VALIDATION_ELEMENT_NULL)
+	@Size(message = VALIDATION_ELEMENT_SIZE, min = ELEMENT_MIN_SIZE, max = ELEMENT_MAX_SIZE)
+	private final String element;
+	
+	@NotNull(message = VALIDATION_CONDITION_NULL)
+	private final Condition condition;
+	
+	@NotNull(message = VALIDATION_VALUE_NULL)
+	@Size(message = VALIDATION_VALUE_SIZE, max = VALUE_MAX_SIZE)
+	private final String value;
+		
+	private final Connective connective;
+	
+	
+	AbstractEntryFilterModel(Long id, int ordinal, String element, Condition condition, 
+			String value, Connective connective) {
+		this.id = id;
+		this.ordinal = ordinal;
+		this.element = element;
+		this.condition = condition;
+		this.value = value;
+		this.connective = connective;
+	}
+
+
+	AbstractEntryFilterModel(T entryFilter) {
+		this(
+			entryFilter.getId(),
+			entryFilter.getOrdinal(),
+			entryFilter.getElement(),
+			entryFilter.getCondition(),
+			entryFilter.getValue(),
+			entryFilter.getConnective()
+			);
+	}
+
+
+	@Override
+	@JsonGetter("id")
+	public Long id() {
+		return id;
+	}
+
+	@Override
+	@JsonGetter("ordinal")
+	public int ordinal() {
+		return ordinal;
+	}
+
+	@Override
+	@JsonGetter("element")
+	public String element() {
+		return element;
+	}
+
+	@Override
+	@JsonGetter("condition")
+	public Condition condition() {
+		return condition;
+	}
+
+	@Override
+	@JsonGetter("value")
+	public String value() {
+		return value;
+	}
+
+	@Override
+	@JsonGetter("connective")
+	public Connective connective() {
+		return connective;
+	}
+	
+}
