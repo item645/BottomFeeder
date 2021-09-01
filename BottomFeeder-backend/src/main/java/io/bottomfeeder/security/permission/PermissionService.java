@@ -5,6 +5,9 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 import io.bottomfeeder.digest.DigestRepository;
+import io.bottomfeeder.filter.DigestEntryFilterRepository;
+import io.bottomfeeder.filter.EntryFilterRepository;
+import io.bottomfeeder.filter.SourceFeedEntryFilterRepository;
 import io.bottomfeeder.sourcefeed.SourceFeedRepository;
 import io.bottomfeeder.user.User;
 
@@ -17,17 +20,24 @@ class PermissionService {
 	
 	private final DigestRepository digestRepository;
 	private final SourceFeedRepository sourceFeedRepository;
+	private final DigestEntryFilterRepository digestEntryFilterRepository;
+	private final SourceFeedEntryFilterRepository sourceFeedEntryFilterRepository;
 
 	
-	public PermissionService(DigestRepository digestRepository, SourceFeedRepository sourceFeedRepository) {
+	public PermissionService(
+			DigestRepository digestRepository, 
+			SourceFeedRepository sourceFeedRepository, 
+			DigestEntryFilterRepository digestEntryFilterRepository, 
+			SourceFeedEntryFilterRepository sourceFeedEntryFilterRepository) {
 		this.digestRepository = digestRepository;
 		this.sourceFeedRepository = sourceFeedRepository;
+		this.digestEntryFilterRepository = digestEntryFilterRepository;
+		this.sourceFeedEntryFilterRepository = sourceFeedEntryFilterRepository;
 	}
 	
 	
 	public boolean hasDigestPermission(Object digestId, User user, Permission permission) {
-		Objects.requireNonNull(digestId, "Digest ID cannot be null");
-		Objects.requireNonNull(permission, "Permission cannot be null");
+		ensureNonNullPermission(permission);
 		
 		return switch (permission) {
 			case READ, UPDATE, DELETE -> {
@@ -36,7 +46,7 @@ class PermissionService {
 						yield true;
 					}
 					else {
-						var id = castId(digestId, Number.class).longValue();
+						var id = castIdToLong(digestId);
 						yield digestRepository.isDigestOwner(id, user.getId());
 					}
 				}
@@ -61,12 +71,12 @@ class PermissionService {
 	
 	
 	public boolean hasSourceFeedPermission(Object sourceFeedId, User user, Permission permission) {
-		Objects.requireNonNull(permission, "Permission cannot be null");
+		ensureNonNullPermission(permission);
 		
 		if (user != null) {
 			return user.isAdmin() || switch (permission) {
 				case READ, UPDATE, DELETE -> {
-					var id = castId(sourceFeedId, Number.class).longValue();
+					var id = castIdToLong(sourceFeedId);
 					yield sourceFeedRepository.isSourceFeedDigestOwner(id, user.getId());
 				}
 				default -> throw unsupportedPermissionError("source feed", permission);
@@ -77,6 +87,44 @@ class PermissionService {
 		}
 	}
 	
+	
+	public boolean hasDigestEntryFilterPermission(Object digestEntryFilterId, User user, Permission permission) {
+		return hasEntryFilterPermission(castIdToLong(digestEntryFilterId), user, permission, 
+				digestEntryFilterRepository);
+	}
+	
+	
+	public boolean hasSourceFeedEntryFilterPermission(Object sourceFeedEntryFilterId, User user, Permission permission) {
+		return hasEntryFilterPermission(castIdToLong(sourceFeedEntryFilterId), user, permission,
+				sourceFeedEntryFilterRepository);
+	}
+	
+	
+	private static boolean hasEntryFilterPermission(long entryFilterId, User user, Permission permission, 
+			EntryFilterRepository<?,?> entryFilterRepository) {
+		ensureNonNullPermission(permission);
+		
+		if (user != null) {
+			return user.isAdmin() || switch (permission) {
+				case READ, UPDATE, DELETE -> entryFilterRepository.isAssociatedEntityOwner(entryFilterId, user.getId());
+				default -> throw unsupportedPermissionError("entry filter", permission);
+			};
+		}
+		else {
+			return false;
+		}
+	}
+
+	
+	private static void ensureNonNullPermission(Permission permission) {
+		Objects.requireNonNull(permission, "Permission cannot be null");
+	}
+	
+	
+	private static long castIdToLong(Object id) {
+		return castId(id, Number.class).longValue();
+	}
+
 	
 	private static <T> T castId(Object id, Class<T> expectedType) {
 		if (!expectedType.isInstance(id))

@@ -17,7 +17,7 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @param <E> the type of entity that filter entity is associated with
  */
 @NoRepositoryBean
-interface EntryFilterRepository<T extends EntryFilter<E>, E> extends JpaRepository<T, Long> {
+public interface EntryFilterRepository<T extends EntryFilter<E>, E> extends JpaRepository<T, Long> {
 
 	List<T> findByAssociatedEntity(E associatedEntity);
 	
@@ -34,4 +34,8 @@ interface EntryFilterRepository<T extends EntryFilter<E>, E> extends JpaReposito
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Query("delete #{#entityName} entity where entity.associatedEntity.id = :associatedEntityId")
 	int deleteByAssociatedEntityId(long associatedEntityId);
+	
+	
+	boolean isAssociatedEntityOwner(long entryFilterId, Long userId);
+	
 }

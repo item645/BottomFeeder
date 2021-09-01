@@ -67,6 +67,7 @@ class EntryFilterController {
 	}
 	
 	
+	@PreAuthorize(PermissionExpressions.UPDATE_DIGEST_ENTRY_FILTERS)
 	@PostMapping("/digest/{id}")
 	public Response<DigestEntryFilterListModel> updateDigestEntryFilters(@PathVariable long id,
 			@Valid @RequestBody DigestEntryFilterListModel filterListRequest) {
@@ -87,6 +88,7 @@ class EntryFilterController {
 	}
 	
 	
+	@PreAuthorize(PermissionExpressions.UPDATE_SOURCE_FEED_ENTRY_FILTERS)
 	@PostMapping("/feed/{id}")
 	public Response<SourceFeedEntryFilterListModel> updateSourceFeedEntryFilters(@PathVariable long id,
 			@Valid @RequestBody SourceFeedEntryFilterListModel filterListRequest) {

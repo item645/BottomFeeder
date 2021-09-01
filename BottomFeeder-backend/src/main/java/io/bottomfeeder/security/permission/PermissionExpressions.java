@@ -39,4 +39,12 @@ public final class PermissionExpressions {
 	
 	public static final String DELETE_SOURCE_FEED = 
 			"hasPermission(#id, '" + SOURCE_FEED_CLASS + "', T(" + PERMISSION_CLASS + ").DELETE)";
+	
+	public static final String UPDATE_DIGEST_ENTRY_FILTERS = 
+			"hasPermission(#id, '" + DIGEST_CLASS + "', T(" + PERMISSION_CLASS + ").UPDATE) and " + 
+			"hasPermission(#filterListRequest.filters.?[id!=null], T(" + PERMISSION_CLASS + ").UPDATE)";
+	
+	public static final String UPDATE_SOURCE_FEED_ENTRY_FILTERS = 
+			"hasPermission(#id, '" + SOURCE_FEED_CLASS + "', T(" + PERMISSION_CLASS + ").UPDATE) and " + 
+			"hasPermission(#filterListRequest.filters.?[id!=null], T(" + PERMISSION_CLASS + ").UPDATE)";
 }

@@ -1,6 +1,7 @@
 package io.bottomfeeder.security.permission;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,8 @@ import org.springframework.security.core.Authentication;
 
 import io.bottomfeeder.base.EntityModel;
 import io.bottomfeeder.digest.Digest;
+import io.bottomfeeder.filter.DigestEntryFilter;
+import io.bottomfeeder.filter.SourceFeedEntryFilter;
 import io.bottomfeeder.sourcefeed.SourceFeed;
 import io.bottomfeeder.user.User;
 import io.bottomfeeder.user.UserService;
@@ -35,9 +38,30 @@ class DefaultPermissionEvaluator implements PermissionEvaluator {
 
 	@Override
 	public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
+		return hasPermission(getUser(authentication), targetDomainObject, (Permission) permission);
+	}
+	
+
+	@Override
+	public boolean hasPermission(Authentication authentication, Serializable targetId, 
+			String targetType, Object permission) {
+		return hasPermission(getUser(authentication), targetId, getTargetEntityClass(targetType), (Permission) permission);
+	}
+
+	
+	private boolean hasPermission(User user, Object targetDomainObject, Permission permission) {
 		if (targetDomainObject instanceof EntityModel<?> entityModel) {
-			var user = userService.getAuthenticatedUserOrNull(authentication);
-			return hasPermission(user, entityModel.entityId(), entityModel.entityClass(), (Permission) permission);
+			return hasPermission(user, entityModel.entityId(), entityModel.entityClass(), permission);
+		}
+		else if (targetDomainObject instanceof Collection<?> collection) {
+			// For collection, perform short-circuit recursive check of given permission for
+			// all of its elements. The permission is only granted for collection if it is 
+			// granted for each element.
+			for (var object : collection) {
+				if (!hasPermission(user, object, permission))
+					return false;
+			}
+			return true;
 		}
 		else {
 			logger.warn(String.format("Unsupported target domain object type: %s", 
@@ -46,15 +70,6 @@ class DefaultPermissionEvaluator implements PermissionEvaluator {
 		}
 	}
 	
-
-	@Override
-	public boolean hasPermission(Authentication authentication, Serializable targetId, 
-			String targetType, Object permission) {
-		var targetEntityClass = getTargetEntityClass(targetType);
-		var user = userService.getAuthenticatedUserOrNull(authentication);
-		return hasPermission(user, targetId, targetEntityClass, (Permission) permission);
-	}
-
 	
 	private boolean hasPermission(User user, Object targetId, Class<?> targetEntityClass, Permission permission) {
 		if (targetId == null) {
@@ -67,11 +82,22 @@ class DefaultPermissionEvaluator implements PermissionEvaluator {
 			else if (targetEntityClass == SourceFeed.class) {
 				return permissionService.hasSourceFeedPermission(targetId, user, permission);
 			}
+			else if (targetEntityClass == DigestEntryFilter.class) {
+				return permissionService.hasDigestEntryFilterPermission(targetId, user, permission);
+			}
+			else if (targetEntityClass == SourceFeedEntryFilter.class) {
+				return permissionService.hasSourceFeedEntryFilterPermission(targetId, user, permission);
+			}
 			else {
 				logger.warn(String.format("Unsupported target entity type: %s", targetEntityClass));
 				return false;
 			}
 		}
+	}
+
+	
+	private User getUser(Authentication authentication) {
+		return userService.getAuthenticatedUserOrNull(authentication);
 	}
 	
 	
