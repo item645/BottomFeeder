@@ -15,7 +15,7 @@ import io.bottomfeeder.sourcefeed.SourceFeed;
 public record SourceFeedEntryFilterListModel(
 		
 		@Valid
-		@NotNull
+		@NotNull(message = "{validation.entry-filter-list.source-feed-filters.null}")
 		List<SourceFeedEntryFilterModel> filters) 
 
 implements EntryFilterList<SourceFeedEntryFilter, SourceFeed>{

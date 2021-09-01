@@ -15,7 +15,7 @@ import io.bottomfeeder.filter.EntryFilterList;
 public record DigestEntryFilterListModel(
 		
 		@Valid
-		@NotNull
+		@NotNull(message = "{validation.entry-filter-list.digest-filters.null}")
 		List<DigestEntryFilterModel> filters)
 
 implements EntryFilterList<DigestEntryFilter, Digest> {
