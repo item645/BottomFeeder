@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 
 import io.bottomfeeder.filter.Condition;
 import io.bottomfeeder.filter.Connective;
+import io.bottomfeeder.filter.Element;
 import io.bottomfeeder.filter.EntryFilter;
 import io.bottomfeeder.filter.EntryFilterModel;
 
@@ -27,8 +28,7 @@ abstract class AbstractEntryFilterModel<T extends EntryFilter<E>, E> implements 
 	private final int ordinal;
 	
 	@NotNull(message = VALIDATION_ELEMENT_NULL)
-	@Size(message = VALIDATION_ELEMENT_SIZE, min = ELEMENT_MIN_SIZE, max = ELEMENT_MAX_SIZE)
-	private final String element;
+	private final Element element;
 	
 	@NotNull(message = VALIDATION_CONDITION_NULL)
 	private final Condition condition;
@@ -40,7 +40,7 @@ abstract class AbstractEntryFilterModel<T extends EntryFilter<E>, E> implements 
 	private final Connective connective;
 	
 	
-	AbstractEntryFilterModel(Long id, int ordinal, String element, Condition condition, 
+	AbstractEntryFilterModel(Long id, int ordinal, Element element, Condition condition, 
 			String value, Connective connective) {
 		this.id = id;
 		this.ordinal = ordinal;
@@ -77,7 +77,7 @@ abstract class AbstractEntryFilterModel<T extends EntryFilter<E>, E> implements 
 
 	@Override
 	@JsonGetter("element")
-	public String element() {
+	public Element element() {
 		return element;
 	}
 

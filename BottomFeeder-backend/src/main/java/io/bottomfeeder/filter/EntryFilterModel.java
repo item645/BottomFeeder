@@ -14,7 +14,7 @@ public interface EntryFilterModel<T extends EntryFilter<E>, E> extends EntityMod
 	
 	int ordinal();
 	
-	String element();
+	Element element();
 	
 	Condition condition();
 	

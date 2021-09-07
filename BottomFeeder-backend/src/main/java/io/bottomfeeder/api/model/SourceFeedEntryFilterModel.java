@@ -2,6 +2,7 @@ package io.bottomfeeder.api.model;
 
 import io.bottomfeeder.filter.Condition;
 import io.bottomfeeder.filter.Connective;
+import io.bottomfeeder.filter.Element;
 import io.bottomfeeder.filter.SourceFeedEntryFilter;
 import io.bottomfeeder.sourcefeed.SourceFeed;
 
@@ -10,7 +11,7 @@ import io.bottomfeeder.sourcefeed.SourceFeed;
  */
 public final class SourceFeedEntryFilterModel extends AbstractEntryFilterModel<SourceFeedEntryFilter, SourceFeed> {
 
-	public SourceFeedEntryFilterModel(Long id, int ordinal, String element, Condition condition, 
+	public SourceFeedEntryFilterModel(Long id, int ordinal, Element element, Condition condition, 
 			String value, Connective connective) {
 		super(id, ordinal, element, condition, value, connective);
 	}

@@ -4,13 +4,14 @@ import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.filter.Condition;
 import io.bottomfeeder.filter.Connective;
 import io.bottomfeeder.filter.DigestEntryFilter;
+import io.bottomfeeder.filter.Element;
 
 /**
  * Contains request or response data for individual digest entry filter.
  */
 public final class DigestEntryFilterModel extends AbstractEntryFilterModel<DigestEntryFilter, Digest> {
 	
-	public DigestEntryFilterModel(Long id, int ordinal, String element, Condition condition, 
+	public DigestEntryFilterModel(Long id, int ordinal, Element element, Condition condition, 
 			String value, Connective connective) {
 		super(id, ordinal, element, condition, value, connective);
 	}

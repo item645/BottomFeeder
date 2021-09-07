@@ -4,6 +4,8 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -24,6 +26,9 @@ import io.bottomfeeder.sourcefeed.SourceFeed;
 @Service
 public class EntryFilterService {
 
+	private static final DateTimeFormatter DATE_VALUE_PATTERN = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+	private static final DateTimeFormatter DATE_TIME_VALUE_PATTERN = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+	
 	private final DigestEntryFilterRepository digestEntryFilterRepository;
 	private final SourceFeedEntryFilterRepository sourceFeedEntryFilterRepository;
 	
@@ -81,7 +86,7 @@ public class EntryFilterService {
 				.sorted(Comparator.comparing(EntryFilterModel::ordinal))
 				.collect(toList());
 		
-		validateConnectives(submittedFilters);
+		validateSubmittedFilters(submittedFilters);
 		
 		var existingFiltersById = entryFilterRepository.findByAssociatedEntityAndMapById(associatedEntity);
 		
@@ -135,19 +140,64 @@ public class EntryFilterService {
 	}
 	
 	
-	private static void validateConnectives(List<? extends EntryFilterModel<?,?>> submittedFilters) {
-		for (int i = 0; i < submittedFilters.size(); i++) {
-			var filterData = submittedFilters.get(i);
-			if (i == submittedFilters.size() - 1) {
-				if (filterData.connective() != null)
-					throw new EntryFilterException("Last filter in filter list cannot have connective");
-			}
-			else {
-				if (filterData.connective() == null)
-					throw new EntryFilterException(
-							format("Filter at index %d in filter list contains no connective", i));
-			}
+	private static void validateSubmittedFilters(List<? extends EntryFilterModel<?,?>> submittedFilters) {
+		for (int i = 0; i < submittedFilters.size(); i++)
+			validateFilterData(submittedFilters.get(i), i, i == submittedFilters.size() - 1);
+	}
+	
+	
+	private static void validateFilterData(EntryFilterModel<?,?> filterData, int filterIndex, boolean isLast) {
+		var element = filterData.element();
+		if (element == null)
+			throw invalidFilterError(filterIndex, "contains no element");
+		
+		var elementDataType = element.dataType();
+		
+		var condition = filterData.condition();
+		if (!elementDataType.supportsCondition(condition))
+			throw invalidFilterError(filterIndex, "contains unsupported condition %s for element %s of data type %s",
+					condition, element, elementDataType);
+		
+		var value = filterData.value();
+		if (value == null)
+			throw invalidFilterError(filterIndex, "contains null value");
+		if (elementDataType == ElementDataType.DATE_TIME) {
+			if (!isValidDateTime(value))
+				throw invalidFilterError(filterIndex, "contains invalid date/time value: %s", value);
 		}
+		
+		var connective = filterData.connective();
+		if (isLast) {
+			if (connective != null)
+				throw invalidFilterError(filterIndex, "(last) cannot have connective");
+		}
+		else {
+			if (connective == null)
+				throw invalidFilterError(filterIndex, "contains no connective");
+		}
+	}
+	
+	
+	private static boolean isValidDateTime(String value) {
+		return isValidDateTime(value, DATE_VALUE_PATTERN) || isValidDateTime(value, DATE_TIME_VALUE_PATTERN);
+	}
+	
+	
+	private static boolean isValidDateTime(String text, DateTimeFormatter format) {
+		try {
+			format.parse(text);
+			return true;
+		}
+		catch (DateTimeParseException e) {
+			return false;
+		}
+	}
+	
+	
+	private static EntryFilterException invalidFilterError(int filterIndex, 
+			String descriptionTemplate, Object... args) {
+		var message = format("Filter at index %d %s", filterIndex, format(descriptionTemplate, args));
+		return new EntryFilterException(message);
 	}
 
 	
