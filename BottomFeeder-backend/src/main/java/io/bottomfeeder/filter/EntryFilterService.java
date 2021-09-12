@@ -4,18 +4,19 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.rometools.rome.feed.synd.SyndEntry;
 
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.sourcefeed.SourceFeed;
@@ -26,9 +27,6 @@ import io.bottomfeeder.sourcefeed.SourceFeed;
 @Service
 public class EntryFilterService {
 
-	private static final DateTimeFormatter DATE_VALUE_PATTERN = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-	private static final DateTimeFormatter DATE_TIME_VALUE_PATTERN = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-	
 	private final DigestEntryFilterRepository digestEntryFilterRepository;
 	private final SourceFeedEntryFilterRepository sourceFeedEntryFilterRepository;
 	
@@ -141,6 +139,7 @@ public class EntryFilterService {
 	
 	
 	private static void validateSubmittedFilters(List<? extends EntryFilterModel<?,?>> submittedFilters) {
+		// TODO check for duplicate ids
 		for (int i = 0; i < submittedFilters.size(); i++)
 			validateFilterData(submittedFilters.get(i), i, i == submittedFilters.size() - 1);
 	}
@@ -154,7 +153,7 @@ public class EntryFilterService {
 		var elementDataType = element.dataType();
 		
 		var condition = filterData.condition();
-		if (!elementDataType.supportsCondition(condition))
+		if (!DataTypeCondition.isValid(elementDataType, condition))
 			throw invalidFilterError(filterIndex, "contains unsupported condition %s for element %s of data type %s",
 					condition, element, elementDataType);
 		
@@ -162,7 +161,7 @@ public class EntryFilterService {
 		if (value == null)
 			throw invalidFilterError(filterIndex, "contains null value");
 		if (elementDataType == ElementDataType.DATE_TIME) {
-			if (!isValidDateTime(value))
+			if (!DateTimeUtils.isValidDateTime(value))
 				throw invalidFilterError(filterIndex, "contains invalid date/time value: %s", value);
 		}
 		
@@ -174,22 +173,6 @@ public class EntryFilterService {
 		else {
 			if (connective == null)
 				throw invalidFilterError(filterIndex, "contains no connective");
-		}
-	}
-	
-	
-	private static boolean isValidDateTime(String value) {
-		return isValidDateTime(value, DATE_VALUE_PATTERN) || isValidDateTime(value, DATE_TIME_VALUE_PATTERN);
-	}
-	
-	
-	private static boolean isValidDateTime(String text, DateTimeFormatter format) {
-		try {
-			format.parse(text);
-			return true;
-		}
-		catch (DateTimeParseException e) {
-			return false;
 		}
 	}
 	
@@ -206,4 +189,45 @@ public class EntryFilterService {
 			filters.get(i).setOrdinal(i + 1);
 	}
 
+	
+	public Predicate<SyndEntry> getDigestEntryFilterChain(Digest digest) {
+		return createEntryFilterChain(getDigestEntryFilters(digest));
+	}
+	
+	
+	public Predicate<SyndEntry> getSourceFeedEntryFilterChain(SourceFeed sourceFeed) {
+		return createEntryFilterChain(getSourceFeedEntryFilters(sourceFeed));
+	}
+
+	
+	private static Predicate<SyndEntry> createEntryFilterChain(List<? extends EntryFilter<?>> entryFilters) {
+		if (entryFilters.isEmpty()) {
+			return null;
+		}
+		else {
+			var filterChain = createPredicate(entryFilters.get(0));
+			if (entryFilters.size() > 1) {
+				for (int i = 1; i < entryFilters.size(); i++) {
+					var connective = entryFilters.get(i - 1).getConnective();
+					filterChain = connective.compose(filterChain, createPredicate(entryFilters.get(i)));
+				}
+			}
+			return filterChain;
+		}
+	}
+	
+	
+	private static Predicate<SyndEntry> createPredicate(EntryFilter<?> entryFilter) {
+		return syndEntry -> {
+			if (syndEntry == null) {
+				return false;
+			}
+			else {
+				var element = entryFilter.getElement();
+				var evaluator = DataTypeCondition.of(element.dataType(), entryFilter.getCondition()).conditionEvaluator();
+				return evaluator.evaluate(element.readValue(syndEntry), entryFilter.getValue());
+			}
+		};
+	}
+	
 }

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FastByteArrayOutputStream;
@@ -26,6 +27,7 @@ import com.rometools.rome.io.XmlReader;
 
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.digest.feed.DigestFeedFormat;
+import io.bottomfeeder.filter.EntryFilterService;
 import io.bottomfeeder.sourcefeed.SourceFeed;
 
 /**
@@ -38,21 +40,36 @@ public class SourceFeedEntryService {
 	private static final Logger logger = LoggerFactory.getLogger(SourceFeedEntryService.class);
 	
 	private final SourceFeedEntryRepository sourceFeedEntryRepository;
+	private final EntryFilterService entryFilterService;
 	private final SyndFeedInput syndFeedInput = new SyndFeedInput();
 	private final SyndFeedOutput syndFeedOutput = new SyndFeedOutput();
 
 	
-	public SourceFeedEntryService(SourceFeedEntryRepository sourceFeedEntryRepository) {
+	public SourceFeedEntryService(
+			SourceFeedEntryRepository sourceFeedEntryRepository, 
+			EntryFilterService entryFilterService) {
 		this.sourceFeedEntryRepository = sourceFeedEntryRepository;
+		this.entryFilterService = entryFilterService;
 	}
 
 	
 	@Transactional
 	public List<SyndEntry> loadDigestFeedContent(Digest digest, DigestFeedFormat targetFormat) {
-		return sourceFeedEntryRepository.findDigestFeedEntries(digest).stream()
-				.map(sourceFeedEntry -> readSourceFeedEntryContent(sourceFeedEntry, targetFormat))
-				.filter(Objects::nonNull)
-				.collect(toList());
+		var entryFilterChain = entryFilterService.getDigestEntryFilterChain(digest);
+		if (entryFilterChain == null) {
+			return sourceFeedEntryRepository.findDigestFeedEntries(digest).stream()
+					.map(sourceFeedEntry -> readSourceFeedEntryContent(sourceFeedEntry, targetFormat))
+					.filter(Objects::nonNull)
+					.collect(toList());
+		}
+		else {
+			return sourceFeedEntryRepository.findDigestFeedEntries(digest, Pageable.unpaged()).stream()
+					.map(sourceFeedEntry -> readSourceFeedEntryContent(sourceFeedEntry, targetFormat))
+					.filter(entryFilterChain)
+					.limit(digest.getMaxEntries())
+					.collect(toList());
+		}
+		
 	}
 	
 	
@@ -63,8 +80,13 @@ public class SourceFeedEntryService {
 		
 		deleteSourceFeedEntries(sourceFeed);
 		
-		var maxEntries = sourceFeed.getMaxEntries();
 		var syndEntryStream = newFeedData.getEntries().stream();
+		
+		var entryFilterChain = entryFilterService.getSourceFeedEntryFilterChain(sourceFeed);
+		if (entryFilterChain != null)
+			syndEntryStream = syndEntryStream.filter(entryFilterChain);
+		
+		var maxEntries = sourceFeed.getMaxEntries();
 		if (maxEntries > 0)
 			syndEntryStream = syndEntryStream.limit(maxEntries);
 		
