@@ -1,0 +1,58 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+	<div *ngFor="let filter of filters.controls; let i = index">
+		<div [formGroup]="filter" class="form-group row">
+			<div class="col-sm-2">
+				<div *ngIf="i == 0" class="font-weight-bold small">Element</div>
+				<select formControlName="element" class="form-control form-control-sm" (change)="onElementChange(i)" 
+					[ngClass]="{ 'is-invalid': submitted && filter.controls.element.errors }">
+					<option *ngFor="let elementOption of elementOptions" [value]="elementOption.value">
+						{{elementOption.name}}
+					</option>
+				</select>
+				<div *ngIf="submitted && filter.controls.element.errors" class="invalid-feedback">
+					<div *ngIf="submitted && filter.controls.element.errors.required">Element is required</div>
+				</div>
+			</div>
+			<div class="col-sm-2">
+				<div *ngIf="i == 0" class="font-weight-bold small">Condition</div>
+				<select formControlName="condition" class="form-control form-control-sm"
+					[ngClass]="{ 'is-invalid': submitted && filter.controls.condition.errors }">
+					<option *ngFor="let conditionOption of elementConditionsOptions.get(filter.controls.element.value)" 
+						[value]="conditionOption.value">
+						{{conditionOption.name}}
+					</option>
+				</select>
+				<div *ngIf="submitted && filter.controls.condition.errors" class="invalid-feedback">
+					<div *ngIf="submitted && filter.controls.condition.errors.required">Condition is required</div>
+				</div>
+			</div>
+			<div class="col-sm-6">
+				<div *ngIf="i == 0" class="font-weight-bold small">Value</div>
+				<input type="text" formControlName="value" class="form-control form-control-sm"
+					[ngClass]="{ 'is-invalid': submitted && filter.controls.value.errors }" />
+			</div>
+			<div class="col-sm-1">
+				<div *ngIf="i == 0" class="font-weight-bold small">Connective</div>
+				<select formControlName="connective" class="form-control form-control-sm"
+					[ngClass]="{ 'is-invalid': submitted && filter.controls.connective.errors }">
+					<option *ngFor="let connectiveOption of connectiveOptions" [value]="connectiveOption">
+						{{connectiveOption}}
+					</option>
+				</select>
+				<div *ngIf="submitted && filter.controls.connective.errors" class="invalid-feedback">
+					<div *ngIf="submitted && filter.controls.connective.errors.required">Connective is required</div>
+				</div>
+			</div>
+			<div class="col-sm-1 align-self-end">
+				<a (click)="removeEntryFilter(i)" class="filter-remove-button" title="Remove">&#10799;</a>
+			</div>
+		</div>
+	</div>
+	<div class="form-row">
+		<button type="button" (click)="addNewEntryFilter()" class="btn btn-primary mr-1">Add</button>
+		<button class="btn btn-primary mr-1">
+			<span *ngIf="saving" class="spinner-border spinner-border-sm mr-1"></span>
+			Save
+		</button>
+	</div>
+</form>

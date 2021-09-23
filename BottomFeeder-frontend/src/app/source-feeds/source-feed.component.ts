@@ -8,6 +8,7 @@ import { DigestTitle } from '../digests/digest.model';
 import { DigestService } from '../digests/digest.service';
 import { PrincipalService } from '../core/auth/principal.service';
 import { Observable } from 'rxjs';
+import { SessionStorageService } from 'ngx-webstorage';
 
 @Component({
 	selector: 'app-source-feed',
@@ -35,7 +36,8 @@ export class SourceFeedComponent implements OnInit {
 		private sourceFeedService: SourceFeedService,
 		private digestService: DigestService,
 		private principal: PrincipalService,
-		public location: Location
+		public location: Location,
+		private sessionStorage: SessionStorageService
 	) {
 		this.sourceFeedId = this.route.snapshot.params['id'];
 
@@ -94,6 +96,23 @@ export class SourceFeedComponent implements OnInit {
 					this.otherDigestTitles.push(digestTitle);
 			}
 		});
+	}
+
+	private getTabIndexStorageKey() {
+		return this.sourceFeedId ? `bf_source_feed_${this.sourceFeedId}_tab` : '';
+	}
+
+	// TODO add a separate service for storing/retrieving active tab id
+	get activeTabId(): number {
+		let key = this.getTabIndexStorageKey();
+		let value = key ? this.sessionStorage.retrieve(key) : null;
+		return value ? value : 1;
+	}
+
+	set activeTabId(value: number) {
+		let key = this.getTabIndexStorageKey();
+		if (key)
+			this.sessionStorage.store(key, value);
 	}
 
 	get f() {

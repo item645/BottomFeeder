@@ -6,6 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { DigestComponent } from './digest.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { SourceFeedsModule } from '../source-feeds/source-feeds.module';
+import { EntryFiltersModule } from '../entry-filters/entry-filters.module';
 
 @NgModule({
 	declarations: [
@@ -17,7 +18,8 @@ import { SourceFeedsModule } from '../source-feeds/source-feeds.module';
 		ReactiveFormsModule,
 		CommonModule,
 		NgbModule,
-		SourceFeedsModule
+		SourceFeedsModule,
+		EntryFiltersModule
 	]
 })
 export class DigestsModule { }

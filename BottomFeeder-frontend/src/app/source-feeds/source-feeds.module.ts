@@ -4,6 +4,8 @@ import { SourceFeedComponent } from './source-feed.component';
 import { SourceFeedListComponent } from './source-feed-list.component';
 import { SourceFeedsRoutingModule } from './source-feeds-routing.module';
 import { ReactiveFormsModule } from '@angular/forms';
+import { EntryFiltersModule } from '../entry-filters/entry-filters.module';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
 	declarations: [
@@ -13,7 +15,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 	imports: [
 		SourceFeedsRoutingModule,
 		ReactiveFormsModule,
-		CommonModule
+		CommonModule,
+		NgbModule,
+		EntryFiltersModule
 	],
 	exports: [
 		SourceFeedListComponent

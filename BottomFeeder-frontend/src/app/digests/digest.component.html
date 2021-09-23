@@ -96,6 +96,12 @@
 				<source-feed-list [digest]="digest"></source-feed-list>
 			</ng-template>
 		</li>
+		<li [ngbNavItem]="3" *ngIf="digest">
+			<a ngbNavLink>Entry Filters</a>
+			<ng-template ngbNavContent>
+				<digest-entry-filter-list [digest]="digest"></digest-entry-filter-list>
+			</ng-template>
+		</li>
 	</ul>
 </div>
 <div [ngbNavOutlet]="nav" class="col-md-10 offset-md-1"></div>

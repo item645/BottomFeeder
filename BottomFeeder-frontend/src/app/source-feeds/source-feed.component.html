@@ -3,119 +3,133 @@
 		<h2 *ngIf="!sourceFeed">Add Source Feed</h2>
 		<h2 *ngIf="sourceFeed">Edit Source Feed</h2>
 	</div>
-	<form [formGroup]="form" (ngSubmit)="save()">
-		<div *ngIf="sourceFeed">
-			<dl class="row">
-				<dt class="col-sm-2"><span>Title</span></dt>
-				<dd class="col-sm-10">
-					<span>{{sourceFeed.title}}</span>
-					<small class="form-text text-muted">
-						The title of this feed. This is set automatically upon successful update of feed's content,
-						using the value of its <em>title</em> element.
-					</small>
-				</dd>
-			</dl>
-			<dl class="row">
-				<dt class="col-sm-2"><span>Creation Date</span></dt>
-				<dd class="col-sm-10"><span>{{sourceFeed.creationDate | date:'medium'}}</span></dd>
-			</dl>
-			<dl class="row">
-				<dt class="col-sm-2"><span>Content Update Date</span></dt>
-				<dd class="col-sm-10">
-					<span>{{sourceFeed.contentUpdateDate | date:'medium'}}</span>
-					<small class="form-text text-muted">
-						Last time when this feed's content has been successfully fetched and updated from its source.
-						Empty if feed has never been updated.
-					</small>
-				</dd>
-			</dl>
-		</div>
-		<div class="form-group row">
-			<label for="digestId" class="col-sm-2 font-weight-bold">Digest</label>
-			<div class="col-sm-10">
-				<select *ngIf="otherDigestTitles.length > 0" formControlName="digestId" class="form-control" 
-					[ngClass]="{ 'is-invalid': submitted && f.digestId.errors }">
-					<optgroup label="My Digests">
-						<option *ngFor="let digestTitle of ownDigestTitles" [value]="digestTitle.id"
-							[selected]="digestTitle.id === digestId">{{digestTitle.title}}</option>
-					</optgroup>
-					<optgroup label="Other Digests">
-						<option *ngFor="let digestTitle of otherDigestTitles" [value]="digestTitle.id"
-							[selected]="digestTitle.id === digestId">{{digestTitle.title}}</option>
-					</optgroup>
-				</select>
-				<select *ngIf="otherDigestTitles.length === 0" formControlName="digestId" class="form-control" 
-					[ngClass]="{ 'is-invalid': submitted && f.digestId.errors }">
-					<option *ngFor="let digestTitle of ownDigestTitles" [value]="digestTitle.id"
-						[selected]="digestTitle.id === digestId">{{digestTitle.title}}</option>
-				</select>
-				<div *ngIf="submitted && f.digestId.errors" class="invalid-feedback">
-					<div *ngIf="f.digestId.errors.required">Digest is required</div>
-				</div>
-			</div>
-		</div>
-		<div class="form-group row">
-			<label for="source" class="col-sm-2 font-weight-bold">Source</label>
-			<div class="col-sm-10">
-				<input type="text" formControlName="source" class="form-control form-control-sm"
-					[ngClass]="{ 'is-invalid': submitted && f.source.errors }" />
-				<div *ngIf="submitted && f.source.errors" class="invalid-feedback">
-					<div *ngIf="f.source.errors.required">Source is required</div>
-					<div *ngIf="f.source.errors.minlength">Source must at least 1 character</div>
-					<div *ngIf="f.source.errors.maxlength">Source must be no more than 400 characters</div>
-				</div>
-				<small class="form-text text-muted">
-					A source URL of this feed.
-				</small>
-			</div>
-		</div>
-		<div class="form-group row">
-			<label for="contentUpdateInterval" class="col-sm-2 font-weight-bold">Update Interval</label>
-			<div class="col-sm-10">
-				<input type="number" formControlName="contentUpdateInterval" class="form-control form-control-sm"
-					[ngClass]="{ 'is-invalid': submitted && f.contentUpdateInterval.errors }" />
-				<div *ngIf="submitted && f.contentUpdateInterval.errors" class="invalid-feedback">
-					<div *ngIf="f.contentUpdateInterval.errors.required">Update Interval is required</div>
-					<div *ngIf="f.contentUpdateInterval.errors.min">Update Interval value must be no less than 10</div>
-					<div *ngIf="f.contentUpdateInterval.errors.max">Update Interval value must be no more than 1440
+	<ul ngbNav #nav="ngbNav" [(activeId)]="activeTabId" class="nav-tabs">
+		<li [ngbNavItem]="1">
+			<a ngbNavLink>Source Feed Settings</a>
+			<ng-template ngbNavContent>
+				<form [formGroup]="form" (ngSubmit)="save()">
+					<div *ngIf="sourceFeed">
+						<dl class="row">
+							<dt class="col-sm-2"><span>Title</span></dt>
+							<dd class="col-sm-10">
+								<span>{{sourceFeed.title}}</span>
+								<small class="form-text text-muted">
+									The title of this feed. This is set automatically upon successful update of feed's content,
+									using the value of its <em>title</em> element.
+								</small>
+							</dd>
+						</dl>
+						<dl class="row">
+							<dt class="col-sm-2"><span>Creation Date</span></dt>
+							<dd class="col-sm-10"><span>{{sourceFeed.creationDate | date:'medium'}}</span></dd>
+						</dl>
+						<dl class="row">
+							<dt class="col-sm-2"><span>Content Update Date</span></dt>
+							<dd class="col-sm-10">
+								<span>{{sourceFeed.contentUpdateDate | date:'medium'}}</span>
+								<small class="form-text text-muted">
+									Last time when this feed's content has been successfully fetched and updated from its source.
+									Empty if feed has never been updated.
+								</small>
+							</dd>
+						</dl>
 					</div>
-				</div>
-				<small class="form-text text-muted">
-					Sets the scheduled update interval for the content of this feed (in minutes).
-				</small>
-			</div>
-		</div>
-		<div class="form-group row">
-			<label for="maxEntries" class="col-sm-2 font-weight-bold">Max Entries</label>
-			<div class="col-sm-10">
-				<input type="number" formControlName="maxEntries" class="form-control form-control-sm"
-					[ngClass]="{ 'is-invalid': submitted && f.maxEntries.errors }" />
-				<div *ngIf="submitted && f.maxEntries.errors" class="invalid-feedback">
-					<div *ngIf="f.maxEntries.errors.required">Max Entries is required</div>
-					<div *ngIf="f.maxEntries.errors.min">Max Entries value must be not be negative</div>
-					<div *ngIf="f.maxEntries.errors.max">Max Entries value must be no more than 2147483647</div>
-				</div>
-				<small class="form-text text-muted">
-					Limits the number of latest (topmost) entries in this feed's content that will be fetched from the source and stored.
-					The value of 0 means that there is no limit and we will fetch and store as many entries as source provides.
-					Note that the meaning of <em>latest</em> depends on how source feed's content was sorted in the first place.
-				</small>
-			</div>
-		</div>
-		<div class="form-row">
-			<div class="btn-toolbar">
-				<button [disabled]="isSaving()" class="btn btn-primary mr-1"
-					title="Saves feed without updating its content. The content will be auto-updated later by scheduled task. ">
-					<span *ngIf="saving" class="spinner-border spinner-border-sm mr-1"></span>
-					Save
-				</button>
-				<button type="button" (click)="saveAndUpdate()" [disabled]="isSaving()" class="btn btn-primary mr-1"
-					title="Saves feed and updates its content from the source. This can take some time.">
-					<span *ngIf="savingAndUpdating" class="spinner-border spinner-border-sm mr-1"></span>
-					Save & Update
-				</button>
-				<a class="btn btn-link mr-1" (click)="location.back()">Back</a>
-			</div>
-		</div>
-	</form>
+					<div class="form-group row">
+						<label for="digestId" class="col-sm-2 font-weight-bold">Digest</label>
+						<div class="col-sm-10">
+							<select *ngIf="otherDigestTitles.length > 0" formControlName="digestId" class="form-control" 
+								[ngClass]="{ 'is-invalid': submitted && f.digestId.errors }">
+								<optgroup label="My Digests">
+									<option *ngFor="let digestTitle of ownDigestTitles" [value]="digestTitle.id"
+										[selected]="digestTitle.id === digestId">{{digestTitle.title}}</option>
+								</optgroup>
+								<optgroup label="Other Digests">
+									<option *ngFor="let digestTitle of otherDigestTitles" [value]="digestTitle.id"
+										[selected]="digestTitle.id === digestId">{{digestTitle.title}}</option>
+								</optgroup>
+							</select>
+							<select *ngIf="otherDigestTitles.length === 0" formControlName="digestId" class="form-control" 
+								[ngClass]="{ 'is-invalid': submitted && f.digestId.errors }">
+								<option *ngFor="let digestTitle of ownDigestTitles" [value]="digestTitle.id"
+									[selected]="digestTitle.id === digestId">{{digestTitle.title}}</option>
+							</select>
+							<div *ngIf="submitted && f.digestId.errors" class="invalid-feedback">
+								<div *ngIf="f.digestId.errors.required">Digest is required</div>
+							</div>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="source" class="col-sm-2 font-weight-bold">Source</label>
+						<div class="col-sm-10">
+							<input type="text" formControlName="source" class="form-control form-control-sm"
+								[ngClass]="{ 'is-invalid': submitted && f.source.errors }" />
+							<div *ngIf="submitted && f.source.errors" class="invalid-feedback">
+								<div *ngIf="f.source.errors.required">Source is required</div>
+								<div *ngIf="f.source.errors.minlength">Source must at least 1 character</div>
+								<div *ngIf="f.source.errors.maxlength">Source must be no more than 400 characters</div>
+							</div>
+							<small class="form-text text-muted">
+								A source URL of this feed.
+							</small>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="contentUpdateInterval" class="col-sm-2 font-weight-bold">Update Interval</label>
+						<div class="col-sm-10">
+							<input type="number" formControlName="contentUpdateInterval" class="form-control form-control-sm"
+								[ngClass]="{ 'is-invalid': submitted && f.contentUpdateInterval.errors }" />
+							<div *ngIf="submitted && f.contentUpdateInterval.errors" class="invalid-feedback">
+								<div *ngIf="f.contentUpdateInterval.errors.required">Update Interval is required</div>
+								<div *ngIf="f.contentUpdateInterval.errors.min">Update Interval value must be no less than 10</div>
+								<div *ngIf="f.contentUpdateInterval.errors.max">Update Interval value must be no more than 1440
+								</div>
+							</div>
+							<small class="form-text text-muted">
+								Sets the scheduled update interval for the content of this feed (in minutes).
+							</small>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="maxEntries" class="col-sm-2 font-weight-bold">Max Entries</label>
+						<div class="col-sm-10">
+							<input type="number" formControlName="maxEntries" class="form-control form-control-sm"
+								[ngClass]="{ 'is-invalid': submitted && f.maxEntries.errors }" />
+							<div *ngIf="submitted && f.maxEntries.errors" class="invalid-feedback">
+								<div *ngIf="f.maxEntries.errors.required">Max Entries is required</div>
+								<div *ngIf="f.maxEntries.errors.min">Max Entries value must be not be negative</div>
+								<div *ngIf="f.maxEntries.errors.max">Max Entries value must be no more than 2147483647</div>
+							</div>
+							<small class="form-text text-muted">
+								Limits the number of latest (topmost) entries in this feed's content that will be fetched from the source and stored.
+								The value of 0 means that there is no limit and we will fetch and store as many entries as source provides.
+								Note that the meaning of <em>latest</em> depends on how source feed's content was sorted in the first place.
+							</small>
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="btn-toolbar">
+							<button [disabled]="isSaving()" class="btn btn-primary mr-1"
+								title="Saves feed without updating its content. The content will be auto-updated later by scheduled task. ">
+								<span *ngIf="saving" class="spinner-border spinner-border-sm mr-1"></span>
+								Save
+							</button>
+							<button type="button" (click)="saveAndUpdate()" [disabled]="isSaving()" class="btn btn-primary mr-1"
+								title="Saves feed and updates its content from the source. This can take some time.">
+								<span *ngIf="savingAndUpdating" class="spinner-border spinner-border-sm mr-1"></span>
+								Save & Update
+							</button>
+							<a class="btn btn-link mr-1" (click)="location.back()">Back</a>
+						</div>
+					</div>
+				</form>
+			</ng-template>
+		</li>
+		<li [ngbNavItem]="2" *ngIf="sourceFeed">
+			<a ngbNavLink>Entry Filters</a>
+			<ng-template ngbNavContent>
+				<source-feed-entry-filter-list [sourceFeed]="sourceFeed"></source-feed-entry-filter-list>
+			</ng-template>
+		</li>
+	</ul>
 </div>
+<div [ngbNavOutlet]="nav" class="col-md-10 offset-md-1"></div>
