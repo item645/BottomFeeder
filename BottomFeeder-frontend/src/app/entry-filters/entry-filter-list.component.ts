@@ -135,7 +135,7 @@ export class EntryFilterListComponent implements OnInit {
 			ordinal: [entryFilter.ordinal],
 			element: [entryFilter.element, Validators.required],
 			condition: [entryFilter.condition, Validators.required],
-			value: [entryFilter.value],
+			value: [entryFilter.value, Validators.maxLength(200)],
 			connective: [{value: entryFilter.connective, disabled: isLast}, isLast ? [] : [Validators.required]]
 		}));
 	}
@@ -155,7 +155,7 @@ export class EntryFilterListComponent implements OnInit {
 			ordinal: [this.getNextOrdinal()],
 			element: [null, Validators.required],
 			condition: [null, Validators.required],
-			value: [''],
+			value: ['', Validators.maxLength(200)],
 			connective: [{value: null, disabled: true}]
 		}));
 	}

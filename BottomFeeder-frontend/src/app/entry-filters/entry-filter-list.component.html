@@ -3,7 +3,7 @@
 		<div [formGroup]="filter" class="form-group row">
 			<div class="col-sm-2">
 				<div *ngIf="i == 0" class="font-weight-bold small">Element</div>
-				<select formControlName="element" class="form-control form-control-sm" (change)="onElementChange(i)" 
+				<select formControlName="element" class="form-control form-control-sm" (change)="onElementChange(i)"
 					[ngClass]="{ 'is-invalid': submitted && filter.controls.element.errors }">
 					<option *ngFor="let elementOption of elementOptions" [value]="elementOption.value">
 						{{elementOption.name}}
@@ -17,7 +17,7 @@
 				<div *ngIf="i == 0" class="font-weight-bold small">Condition</div>
 				<select formControlName="condition" class="form-control form-control-sm"
 					[ngClass]="{ 'is-invalid': submitted && filter.controls.condition.errors }">
-					<option *ngFor="let conditionOption of elementConditionsOptions.get(filter.controls.element.value)" 
+					<option *ngFor="let conditionOption of elementConditionsOptions.get(filter.controls.element.value)"
 						[value]="conditionOption.value">
 						{{conditionOption.name}}
 					</option>
@@ -30,6 +30,11 @@
 				<div *ngIf="i == 0" class="font-weight-bold small">Value</div>
 				<input type="text" formControlName="value" class="form-control form-control-sm"
 					[ngClass]="{ 'is-invalid': submitted && filter.controls.value.errors }" />
+				<div *ngIf="submitted && filter.controls.value.errors" class="invalid-feedback">
+					<div *ngIf="submitted && filter.controls.value.errors.maxlength">
+						Value must be no more than 200 characters
+					</div>
+				</div>
 			</div>
 			<div class="col-sm-1">
 				<div *ngIf="i == 0" class="font-weight-bold small">Connective</div>
