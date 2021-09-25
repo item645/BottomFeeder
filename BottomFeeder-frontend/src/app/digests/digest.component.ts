@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SessionStorageService } from 'ngx-webstorage';
 import { Digest } from './digest.model';
 import { DigestService } from './digest.service';
 import { Location } from '@angular/common';
+import { ActiveTabMemorizerService } from '../core/active-tab-memorizer.service';
 
 @Component({
 	selector: 'app-digest',
@@ -25,8 +25,8 @@ export class DigestComponent implements OnInit {
 		private route: ActivatedRoute,
 		private router: Router,
 		private digestService: DigestService,
-		private sessionStorage: SessionStorageService,
-		public location: Location
+		public location: Location,
+		private activeTabMemorizer: ActiveTabMemorizerService
 	) { }
 
 	ngOnInit() {
@@ -47,20 +47,12 @@ export class DigestComponent implements OnInit {
 			
 	}
 
-	private getTabIndexStorageKey() {
-		return this.digestId ? `bf_digest_${this.digestId}_tab` : '';
-	}
-
 	get activeTabId(): number {
-		let key = this.getTabIndexStorageKey();
-		let value = key ? this.sessionStorage.retrieve(key) : null;
-		return value ? value : 1;
+		return this.activeTabMemorizer.getDigestActiveTabId(this.digestId);
 	}
 
 	set activeTabId(value: number) {
-		let key = this.getTabIndexStorageKey();
-		if (key)
-			this.sessionStorage.store(key, value);
+		this.activeTabMemorizer.setDigestActiveTabId(this.digestId, value);
 	}
 
 	get f() {
