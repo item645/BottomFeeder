@@ -17,14 +17,32 @@
             {
               "source": "http://rss.slashdot.org/Slashdot/slashdotMainatom",
               "contentUpdateInterval": 25,
-              "maxEntries": 20
+              "maxEntries": 20,
+              "entryFilters": [
+                {
+                  "ordinal" : 1,
+                  "element" : "CATEGORIES",
+                  "condition" : "CONTAINS",
+                  "value" : "science",
+                  "connective" : "AND"
+                },
+                {
+                  "ordinal" : 2,
+                  "element" : "CONTENT",
+                  "condition" : "CONTAINS",
+                  "value" : "concern",
+                  "connective" : null
+                }
+              ]
             },
             {
               "source": "https://www.youtube.com/feeds/videos.xml?channel_id=UC16niRr50-MSBwiO3YDb3RA",
               "contentUpdateInterval": 120,
-              "maxEntries": 0
+              "maxEntries": 0,
+              "entryFilters": []
             }
-          ]
+          ],
+          "entryFilters": []
         }
       ]
     },
@@ -45,9 +63,11 @@
             {
               "source": "https://en.wikipedia.org/w/index.php?title=Special:NewPages&feed=rss",
               "contentUpdateInterval": 20,
-              "maxEntries": 15
+              "maxEntries": 15,
+              "entryFilters": []
             }
-          ]
+          ],
+          "entryFilters": []
         }
       ]
     },

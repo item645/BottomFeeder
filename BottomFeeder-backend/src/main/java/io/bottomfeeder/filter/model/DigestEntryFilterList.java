@@ -1,4 +1,4 @@
-package io.bottomfeeder.api.model;
+package io.bottomfeeder.filter.model;
 
 import java.util.List;
 
@@ -7,16 +7,15 @@ import javax.validation.constraints.NotNull;
 
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.filter.DigestEntryFilter;
-import io.bottomfeeder.filter.EntryFilterList;
 
 /**
- * Contains request or response data for the list of digest entry filters.
+ * A container for the list of digest entry filters.
  */
-public record DigestEntryFilterListModel(
+public record DigestEntryFilterList(
 		
 		@Valid
 		@NotNull(message = "{validation.entry-filter-list.digest-filters.null}")
-		List<DigestEntryFilterModel> filters)
+		List<DigestEntryFilterData> filters)
 
 implements EntryFilterList<DigestEntryFilter, Digest> {
 }

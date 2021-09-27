@@ -6,6 +6,7 @@ import static io.bottomfeeder.user.User.VALIDATION_PASSWORD_SIZE;
 import static io.bottomfeeder.user.User.VALIDATION_PASSWORD_HASH_REGEX;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -33,10 +34,17 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.digest.DigestService;
+import io.bottomfeeder.filter.EntryFilterService;
+import io.bottomfeeder.filter.model.DigestEntryFilterData;
+import io.bottomfeeder.filter.model.DigestEntryFilterList;
+import io.bottomfeeder.filter.model.SourceFeedEntryFilterData;
+import io.bottomfeeder.filter.model.SourceFeedEntryFilterList;
 import io.bottomfeeder.security.Role;
+import io.bottomfeeder.sourcefeed.SourceFeed;
 import io.bottomfeeder.sourcefeed.SourceFeedService;
 import io.bottomfeeder.user.User;
 import io.bottomfeeder.user.UserService;
+import io.bottomfeeder.util.TransactionalRunner;
 
 /**
  * A service providing functionality for importing data represented in JSON 
@@ -55,8 +63,10 @@ public class DataImportService {
 	private final UserService userService;
 	private final DigestService digestService;
 	private final SourceFeedService sourceFeedService;
+	private final EntryFilterService entryFilterService;
 	private final ObjectMapper objectMapper;
 	private final MessageSource messageSource;
+	private final TransactionalRunner transactionalRunner;
 	
 	
 	/**
@@ -91,23 +101,29 @@ public class DataImportService {
 			UserService userService,
 			DigestService digestService, 
 			SourceFeedService sourceFeedService,
+			EntryFilterService entryFilterService,
 			Validator validator, 
-			MessageSource messageSource) {
+			MessageSource messageSource,
+			TransactionalRunner transactionalRunner) {
 		this.userService = userService;
 		this.digestService = digestService;
 		this.sourceFeedService = sourceFeedService;
+		this.entryFilterService = entryFilterService;
 		this.objectMapper = createObjectMapper(validator);
 		this.messageSource = messageSource;
+		this.transactionalRunner = transactionalRunner;
 	}
 	
 	
 	// TODO better error reporting, should clearly indicate the deserialized object where error occured
 	
-	public void importInitialData(byte[] initialDataJson) {
-		assert !userService.hasUsers() : "Database already contains data";
+	void importInitialData(byte[] initialDataJson) {
+		transactionalRunner.run(() -> {
+			assert !userService.hasUsers() : "Database already contains data";
 			
-		importData(initialDataJson, USERS_DATA_TYPE_REF, 
-				compose(this::ensureContainsAdminAccount, this::importUsersData));
+			importData(initialDataJson, USERS_DATA_TYPE_REF, 
+					compose(this::ensureContainsAdminAccount, this::importUsersData));
+		});
 	}
 	
 	
@@ -197,13 +213,28 @@ public class DataImportService {
 	private void saveDigestData(DigestData digestData, User owner) {
 		var digest = digestService.createDigest(owner, digestData.title(), digestData.maxEntries(), 
 				digestData.isPrivate(), digestData.externalId());
+		
 		digestData.sourceFeeds().forEach(sourceFeedData -> saveSourceFeedData(sourceFeedData, digest));
+		saveDigestEntryFiltersData(digestData.entryFilters(), digest);
 	}
 	
 	
 	private void saveSourceFeedData(SourceFeedData sourceFeedData, Digest digest) {
-		sourceFeedService.createSourceFeed(digest, sourceFeedData.source(), 
+		var sourceFeed = sourceFeedService.createSourceFeed(digest, sourceFeedData.source(), 
 				sourceFeedData.contentUpdateInterval(), sourceFeedData.maxEntries(), false);
+		saveSourceFeedEntryFiltersData(sourceFeedData.entryFilters(), sourceFeed);
+	}
+	
+	
+	private void saveDigestEntryFiltersData(List<DigestEntryFilterData> entryFilters, Digest digest) {
+		if (!entryFilters.isEmpty())
+			entryFilterService.updateDigestEntryFilters(new DigestEntryFilterList(entryFilters), digest);
+	}
+	
+	
+	private void saveSourceFeedEntryFiltersData(List<SourceFeedEntryFilterData> entryFilters, SourceFeed sourceFeed) {
+		if (!entryFilters.isEmpty())
+			entryFilterService.updateSourceFeedEntryFilters(new SourceFeedEntryFilterList(entryFilters), sourceFeed);
 	}
 	
 	

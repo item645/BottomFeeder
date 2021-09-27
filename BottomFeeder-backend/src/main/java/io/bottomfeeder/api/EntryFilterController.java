@@ -17,15 +17,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.bottomfeeder.api.model.DigestEntryFilterListModel;
-import io.bottomfeeder.api.model.DigestEntryFilterModel;
 import io.bottomfeeder.api.model.Response;
-import io.bottomfeeder.api.model.SourceFeedEntryFilterListModel;
-import io.bottomfeeder.api.model.SourceFeedEntryFilterModel;
 import io.bottomfeeder.digest.DigestService;
 import io.bottomfeeder.filter.DigestEntryFilter;
 import io.bottomfeeder.filter.EntryFilterService;
 import io.bottomfeeder.filter.SourceFeedEntryFilter;
+import io.bottomfeeder.filter.model.DigestEntryFilterData;
+import io.bottomfeeder.filter.model.DigestEntryFilterList;
+import io.bottomfeeder.filter.model.SourceFeedEntryFilterData;
+import io.bottomfeeder.filter.model.SourceFeedEntryFilterList;
 import io.bottomfeeder.security.permission.PermissionExpressions;
 import io.bottomfeeder.sourcefeed.SourceFeedService;
 
@@ -61,7 +61,7 @@ class EntryFilterController {
 	
 	@PreAuthorize(PermissionExpressions.READ_DIGEST)
 	@GetMapping("/digest/{id}")
-	public Response<DigestEntryFilterListModel> getDigestEntryFilters(@PathVariable long id) {
+	public Response<DigestEntryFilterList> getDigestEntryFilters(@PathVariable long id) {
 		var filters = entryFilterService.getDigestEntryFilters(digestService.getDigest(id));
 		return createDigestEntryFilterListResponse(filters, null);
 	}
@@ -69,8 +69,8 @@ class EntryFilterController {
 	
 	@PreAuthorize(PermissionExpressions.UPDATE_DIGEST_ENTRY_FILTERS)
 	@PostMapping("/digest/{id}")
-	public Response<DigestEntryFilterListModel> updateDigestEntryFilters(@PathVariable long id,
-			@Valid @RequestBody DigestEntryFilterListModel filterListRequest) {
+	public Response<DigestEntryFilterList> updateDigestEntryFilters(@PathVariable long id,
+			@Valid @RequestBody DigestEntryFilterList filterListRequest) {
 		var digest = digestService.getDigest(id);
 
 		var updatedFilters = entryFilterService.updateDigestEntryFilters(filterListRequest, digest);
@@ -82,7 +82,7 @@ class EntryFilterController {
 	
 	@PreAuthorize(PermissionExpressions.READ_SOURCE_FEED)
 	@GetMapping("/feed/{id}")
-	public Response<SourceFeedEntryFilterListModel> getSourceFeedEntryFilters(@PathVariable long id) {
+	public Response<SourceFeedEntryFilterList> getSourceFeedEntryFilters(@PathVariable long id) {
 		var filters = entryFilterService.getSourceFeedEntryFilters(sourceFeedService.getSourceFeed(id));
 		return createSourceFeedEntryFilterListResponse(filters, null);
 	}
@@ -90,8 +90,8 @@ class EntryFilterController {
 	
 	@PreAuthorize(PermissionExpressions.UPDATE_SOURCE_FEED_ENTRY_FILTERS)
 	@PostMapping("/feed/{id}")
-	public Response<SourceFeedEntryFilterListModel> updateSourceFeedEntryFilters(@PathVariable long id,
-			@Valid @RequestBody SourceFeedEntryFilterListModel filterListRequest) {
+	public Response<SourceFeedEntryFilterList> updateSourceFeedEntryFilters(@PathVariable long id,
+			@Valid @RequestBody SourceFeedEntryFilterList filterListRequest) {
 		var sourceFeed = sourceFeedService.getSourceFeed(id);
 
 		var updatedFilters = entryFilterService.updateSourceFeedEntryFilters(filterListRequest, sourceFeed);
@@ -101,17 +101,17 @@ class EntryFilterController {
 	}
 	
 	
-	private static Response<DigestEntryFilterListModel> createDigestEntryFilterListResponse(
+	private static Response<DigestEntryFilterList> createDigestEntryFilterListResponse(
 			List<DigestEntryFilter> filters, String message) {
-		var filterListResponse = filters.stream().map(DigestEntryFilterModel::new).collect(toList());
-		return new Response<>(message, new DigestEntryFilterListModel(filterListResponse));
+		var filterListResponse = filters.stream().map(DigestEntryFilterData::new).collect(toList());
+		return new Response<>(message, new DigestEntryFilterList(filterListResponse));
 	}
 	
 	
-	private static Response<SourceFeedEntryFilterListModel> createSourceFeedEntryFilterListResponse(
+	private static Response<SourceFeedEntryFilterList> createSourceFeedEntryFilterListResponse(
 			List<SourceFeedEntryFilter> filters, String message) {
-		var filterListResponse = filters.stream().map(SourceFeedEntryFilterModel::new).collect(toList());
-		return new Response<>(message, new SourceFeedEntryFilterListModel(filterListResponse));
+		var filterListResponse = filters.stream().map(SourceFeedEntryFilterData::new).collect(toList());
+		return new Response<>(message, new SourceFeedEntryFilterList(filterListResponse));
 	}
 	
 }

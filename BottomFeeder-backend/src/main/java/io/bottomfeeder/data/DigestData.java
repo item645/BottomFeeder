@@ -3,6 +3,7 @@ package io.bottomfeeder.data;
 import static io.bottomfeeder.digest.Digest.*;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.constraints.Max;
@@ -12,10 +13,11 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import io.bottomfeeder.digest.Digest;
+import io.bottomfeeder.filter.model.DigestEntryFilterData;
 
 /**
  * Container for imported or exported data representing a single digest together
- * with its associated source feeds.
+ * with its associated source feeds and entry filters.
  */
 record DigestData(
 		
@@ -35,17 +37,21 @@ record DigestData(
 		boolean isPrivate,
 		
 		@NotNull(message = "{validation.digest-data.source-feeds.null}")
-		Collection<SourceFeedData> sourceFeeds) {
+		Collection<SourceFeedData> sourceFeeds,
+		
+		@NotNull(message = "{validation.digest-data.entry-filters.null}")
+		List<DigestEntryFilterData> entryFilters) {
 	
 	DigestData {}
 	
-	DigestData(Digest digest, Collection<SourceFeedData> sourceFeeds) {
+	DigestData(Digest digest, Collection<SourceFeedData> sourceFeeds, List<DigestEntryFilterData> entryFilters) {
 		this(
 			digest.getExternalId(),
 			digest.getTitle(),
 			digest.getMaxEntries(),
 			digest.isPrivate(),
-			Objects.requireNonNull(sourceFeeds)
+			Objects.requireNonNull(sourceFeeds),
+			Objects.requireNonNull(entryFilters)
 			);
 	}
 }

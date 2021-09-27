@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.rometools.rome.feed.synd.SyndEntry;
 
 import io.bottomfeeder.digest.Digest;
+import io.bottomfeeder.filter.model.EntryFilterList;
+import io.bottomfeeder.filter.model.EntryFilterModel;
 import io.bottomfeeder.sourcefeed.SourceFeed;
 
 /**

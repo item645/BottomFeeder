@@ -12,6 +12,8 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import io.bottomfeeder.filter.model.EntryFilterModel;
+
 /**
  * Base class for entry filter entity implementations, defines common mapped properties.
  * 

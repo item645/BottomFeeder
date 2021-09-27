@@ -9,12 +9,17 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import io.bottomfeeder.digest.Digest;
 import io.bottomfeeder.digest.DigestService;
+import io.bottomfeeder.filter.EntryFilterService;
+import io.bottomfeeder.filter.model.DigestEntryFilterData;
+import io.bottomfeeder.filter.model.SourceFeedEntryFilterData;
+import io.bottomfeeder.sourcefeed.SourceFeed;
 import io.bottomfeeder.sourcefeed.SourceFeedService;
 import io.bottomfeeder.user.User;
 import io.bottomfeeder.user.UserService;
@@ -28,19 +33,34 @@ public class DataExportService {
 	private final UserService userService;
 	private final DigestService digestService;
 	private final SourceFeedService sourceFeedService;
+	private final EntryFilterService entryFilterService;
 	private final ObjectMapper objectMapper;
+	
+	
+	/**
+	 * Provides a mix-in annotation to ignore the id property of serializable data object.
+	 */
+	private interface IgnoreIdMixin {
+		@JsonIgnore Long id();
+	}
 	
 	
 	public DataExportService(
 			UserService userService, 
 			DigestService digestService, 
-			SourceFeedService sourceFeedService) {
+			SourceFeedService sourceFeedService,
+			EntryFilterService entryFilterService) {
 		this.userService = userService;
 		this.digestService = digestService;
 		this.sourceFeedService = sourceFeedService;
+		this.entryFilterService = entryFilterService;
 		
 		objectMapper = new ObjectMapper();
 		objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+		
+		// Exclude filter ids fron serialization
+		objectMapper.addMixIn(DigestEntryFilterData.class, IgnoreIdMixin.class);
+		objectMapper.addMixIn(SourceFeedEntryFilterData.class, IgnoreIdMixin.class);
 	}
 
 
@@ -88,12 +108,31 @@ public class DataExportService {
 	
 	
 	private DigestData createDigestData(Digest digest) {
-		return new DigestData(digest, collectSourceFeedsData(digest));
+		return new DigestData(digest, collectSourceFeedsData(digest), collectDigestEntryFiltersData(digest));
 	}
 
 
 	private List<SourceFeedData> collectSourceFeedsData(Digest digest) {
-		return sourceFeedService.getDigestSourceFeeds(digest).stream().map(SourceFeedData::new).collect(toList());
+		return sourceFeedService.getDigestSourceFeeds(digest).stream().map(this::createSourceFeedData).collect(toList());
 	}
 
+	
+	private SourceFeedData createSourceFeedData(SourceFeed sourceFeed) {
+		return new SourceFeedData(sourceFeed, collectSourceFeedEntryFiltersData(sourceFeed));
+	}
+	
+	
+	private List<DigestEntryFilterData> collectDigestEntryFiltersData(Digest digest) {
+		return entryFilterService.getDigestEntryFilters(digest).stream()
+				.map(DigestEntryFilterData::new)
+				.collect(toList());
+	}
+	
+	
+	private List<SourceFeedEntryFilterData> collectSourceFeedEntryFiltersData(SourceFeed sourceFeed) {
+		return entryFilterService.getSourceFeedEntryFilters(sourceFeed).stream()
+				.map(SourceFeedEntryFilterData::new)
+				.collect(toList());
+	}
+	
 }

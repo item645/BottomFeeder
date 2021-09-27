@@ -1,6 +1,8 @@
-package io.bottomfeeder.filter;
+package io.bottomfeeder.filter.model;
 
 import java.util.List;
+
+import io.bottomfeeder.filter.EntryFilter;
 
 /**
  * Represents a container for the list of entry filters associated with particular entity.

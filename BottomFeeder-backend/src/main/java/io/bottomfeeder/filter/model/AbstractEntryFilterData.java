@@ -1,4 +1,4 @@
-package io.bottomfeeder.api.model;
+package io.bottomfeeder.filter.model;
 
 import static io.bottomfeeder.filter.EntryFilter.*;
 
@@ -12,15 +12,15 @@ import io.bottomfeeder.filter.Condition;
 import io.bottomfeeder.filter.Connective;
 import io.bottomfeeder.filter.Element;
 import io.bottomfeeder.filter.EntryFilter;
-import io.bottomfeeder.filter.EntryFilterModel;
 
 /**
- * Base class for request/response entry filter model implementations.
+ * Base class for entry filter model implementations that act as simple JSON-convertible
+ * containers for filter data.
  * 
  * @param <T> the type of entry filter entity
  * @param <E> the type of entity that filter is associated with
  */
-abstract class AbstractEntryFilterModel<T extends EntryFilter<E>, E> implements EntryFilterModel<T, E> {
+abstract class AbstractEntryFilterData<T extends EntryFilter<E>, E> implements EntryFilterModel<T, E> {
 
 	private final Long id;
 	
@@ -40,7 +40,7 @@ abstract class AbstractEntryFilterModel<T extends EntryFilter<E>, E> implements 
 	private final Connective connective;
 	
 	
-	AbstractEntryFilterModel(Long id, int ordinal, Element element, Condition condition, 
+	AbstractEntryFilterData(Long id, int ordinal, Element element, Condition condition, 
 			String value, Connective connective) {
 		this.id = id;
 		this.ordinal = ordinal;
@@ -51,7 +51,7 @@ abstract class AbstractEntryFilterModel<T extends EntryFilter<E>, E> implements 
 	}
 
 
-	AbstractEntryFilterModel(T entryFilter) {
+	AbstractEntryFilterData(T entryFilter) {
 		this(
 			entryFilter.getId(),
 			entryFilter.getOrdinal(),
