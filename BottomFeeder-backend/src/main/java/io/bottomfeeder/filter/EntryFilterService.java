@@ -7,9 +7,11 @@ import static java.util.stream.Collectors.toSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -141,13 +143,18 @@ public class EntryFilterService {
 	
 	
 	private static void validateSubmittedFilters(List<? extends EntryFilterModel<?,?>> submittedFilters) {
-		// TODO check for duplicate ids
+		var seenIds = new HashSet<Long>();
 		for (int i = 0; i < submittedFilters.size(); i++)
-			validateFilterData(submittedFilters.get(i), i, i == submittedFilters.size() - 1);
+			validateFilterData(submittedFilters.get(i), i, i == submittedFilters.size() - 1, seenIds);
 	}
 	
 	
-	private static void validateFilterData(EntryFilterModel<?,?> filterData, int filterIndex, boolean isLast) {
+	private static void validateFilterData(EntryFilterModel<?,?> filterData, int filterIndex, 
+			boolean isLast, Set<Long> seenIds) {
+		var id = filterData.id();
+		if (id != null && !seenIds.add(id))
+			throw invalidFilterError(filterIndex, "has duplicate id: %d", id);
+			
 		var element = filterData.element();
 		if (element == null)
 			throw invalidFilterError(filterIndex, "contains no element");
