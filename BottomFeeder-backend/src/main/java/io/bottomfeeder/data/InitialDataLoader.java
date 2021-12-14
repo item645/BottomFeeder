@@ -1,7 +1,6 @@
 package io.bottomfeeder.data;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -61,7 +60,7 @@ class InitialDataLoader implements ApplicationRunner {
 	}
 
 	
-	private byte[] loadInitialDataJson() throws IOException, URISyntaxException {
+	private byte[] loadInitialDataJson() throws IOException {
 		var initialDataPath = StringUtils.trimToEmpty(environment.getProperty("bf.data.initial-data-json"));
 		if (StringUtils.isNotBlank(initialDataPath))
 			return loadInitialDataFromPath(initialDataPath);
@@ -76,10 +75,11 @@ class InitialDataLoader implements ApplicationRunner {
 	}
 	
 	
-	private static byte[] loadInitialDataSample() throws IOException, URISyntaxException {
+	private static byte[] loadInitialDataSample() throws IOException {
 		logger.info("Importing initial data sample");
-		var resourceUri = InitialDataLoader.class.getResource("/initial_data_sample.json").toURI();
-		return Files.readAllBytes(Paths.get(resourceUri));
+		try (var input = InitialDataLoader.class.getResourceAsStream("/initial_data_sample.json")) {
+			return input.readAllBytes();
+		}
 	}
 	
 }
