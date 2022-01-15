@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.function.BiConsumer;
@@ -28,6 +29,8 @@ import io.bottomfeeder.sourcefeed.SourceFeedException;
 class SourceFeedContentLoader implements Callable<SyndFeed> {
 	// TODO use time-based cache to hold fetched feed content for short time
 
+	private static final Duration HTTP_REQUEST_TIMEOUT = Duration.ofSeconds(15);
+	
 	private final SourceFeed sourceFeed;
 	private final Consumer<SourceFeed> onStart;
 	private final BiConsumer<SourceFeed, SyndFeed> onSuccess;
@@ -94,7 +97,7 @@ class SourceFeedContentLoader implements Callable<SyndFeed> {
 		onStart.accept(sourceFeed);
 		
 		var httpClient = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
-		var request = HttpRequest.newBuilder(sourceFeed.getURI()).build();
+		var request = HttpRequest.newBuilder(sourceFeed.getURI()).timeout(HTTP_REQUEST_TIMEOUT).build();
 		
 		// TODO handle HTTP 429/503 using exponential backoff or similar strategy
 		try (var input = httpClient.send(request, BodyHandlers.ofInputStream()).body()) {
